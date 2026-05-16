@@ -22,12 +22,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Xamarin.Android
+      - name: Install Mono & Xamarin.Android
         run: |
+          brew install mono
           brew install --cask xamarin-android
           MONO_PREFIX=$(brew --prefix mono)
           echo "$MONO_PREFIX/bin" >> $GITHUB_PATH
           echo "/Library/Frameworks/Mono.framework/Versions/Current/Commands" >> $GITHUB_PATH
+
+      - name: Verify msbuild
+        run: msbuild --version
 
       - name: Generate APK signing keystore (dev)
         run: |

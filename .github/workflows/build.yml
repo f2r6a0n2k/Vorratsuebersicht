@@ -73,9 +73,9 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            mcr.microsoft.com/dotnet/sdk:10.0.100 \
+            mcr.microsoft.com/dotnet/sdk:10.0 \
             bash -c '
-              dotnet workload install maui-android &&
+              dotnet workload install maui &&
               dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
                 -f net10.0-android -c Release \
                 -p:ApplicationVersion=${{ github.run_number }} \

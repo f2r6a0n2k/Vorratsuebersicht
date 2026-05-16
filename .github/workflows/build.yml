@@ -75,7 +75,11 @@ jobs:
             -w /workspace \
             mcr.microsoft.com/dotnet/sdk:10.0.100 \
             bash -c '
+              echo "SDK: $(dotnet --version)" &&
               dotnet workload install maui-android &&
+              echo "=== Manifest content ===" &&
+              VER_DIR=$(ls -d /usr/share/dotnet/sdk-manifests/10.0.100/microsoft.net.sdk.maui/*/ | sort -V | tail -1) &&
+              cat "$VER_DIR/WorkloadManifest.json" &&
               dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
                 -f net10.0-android -c Release \
                 -p:ApplicationVersion=${{ github.run_number }} \

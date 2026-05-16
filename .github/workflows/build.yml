@@ -127,8 +127,9 @@ jobs:
             -p:ApplicationVersion=${{ github.run_number }} \
             -p:ApplicationDisplayVersion=1.0.${{ github.run_number }} \
             -p:ArchiveOnBuild=false \
-            -p:CodesignKey='' \
-            -p:CodesignProvision=''
+            -p:CodesignKey=- \
+            -p:CodesignProvision= \
+            -p:CodesignRequireProvisioningPlan=false
 
       - name: Package unsigned IPA
         run: |

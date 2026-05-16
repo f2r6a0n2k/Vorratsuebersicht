@@ -79,7 +79,11 @@ jobs:
           mkdir -p fdroid/repo
           cp de.stryi.Vorratsuebersicht_149.apk fdroid/repo/
           cd fdroid
-          fdroid update --verbose --create-key
+          if [ -f fdroid-repo.keystore ]; then
+            fdroid update --verbose
+          else
+            fdroid update --verbose --create-key
+          fi
 
       - name: Prepare Pages publish dir
         run: |

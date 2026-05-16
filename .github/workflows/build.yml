@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,16 +31,39 @@ jobs:
             -dname "CN=CI, OU=Build, O=Vorratsuebersicht, L=Unknown, ST=Unknown, C=DE"
           echo "base64=$(base64 -w0 vorratsuebersicht.keystore)" >> $GITHUB_OUTPUT
 
-      - name: Build signed APK (Xamarin Docker container)
-        uses: rheuvel89/xamarin-container-action@v1.16.34
-        with:
-          SolutionPath: Vorratsübersicht.csproj
-          ProjectPath: de.stryi.sln
-          SigningKeyStore: ${{ secrets.KEYSTORE_BASE64 || steps.keystore.outputs.base64 }}
-          SigningKeystorePassword: ${{ secrets.KEYSTORE_PASS || 'vorratsync' }}
-          SigningKeyAlias: ${{ secrets.KEY_ALIAS || 'vorratsuebersicht' }}
-          SigningKeyPassword: ${{ secrets.KEY_PASS || 'vorratsync' }}
-          BuildConfiguration: Release
+      - name: Build signed APK (Xamarin Docker)
+        run: |
+          mkdir -p build
+
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e ANDROID_SDK_ROOT=/usr/lib/android-sdk \
+            rheuvel/xamarin-android:34-latest \
+            bash -c "
+              set -e
+              echo '=== Install Android SDK 33 (for XA v13.0) ==='
+              yes | sdkmanager 'platforms;android-33' 2>&1 || true
+              echo '=== NuGet Restore ==='
+              msbuild de.stryi.sln /restore \
+                /p:Configuration=Release \
+                /p:AndroidSdkDirectory=/usr/lib/android-sdk
+              echo '=== Build & Sign APK ==='
+              msbuild Vorratsübersicht.csproj \
+                /t:SignAndroidPackage \
+                /p:Configuration=Release \
+                /p:AndroidSdkDirectory=/usr/lib/android-sdk \
+                /p:AndroidKeyStore=true \
+                /p:AndroidSigningKeyStore=/workspace/vorratsuebersicht.keystore \
+                /p:AndroidSigningStorePass=vorratsync \
+                /p:AndroidSigningKeyAlias=vorratsuebersicht \
+                /p:AndroidSigningKeyPass=vorratsync \
+                /p:OutputPath=/workspace/build/
+              echo '=== Build complete ==='
+            "
+
+      - name: Check build output
+        run: ls -la build/
 
       - name: Locate and rename APK
         id: apk

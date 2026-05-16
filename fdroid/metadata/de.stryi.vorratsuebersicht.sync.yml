@@ -32,5 +32,5 @@ Builds: []
 
 AutoUpdateMode: None
 UpdateCheckMode: None
-CurrentVersion: 9.00-sync
-CurrentVersionCode: 149
+CurrentVersion: 9.00-sync.2
+CurrentVersionCode: 150

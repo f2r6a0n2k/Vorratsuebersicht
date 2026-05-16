@@ -37,7 +37,6 @@ jobs:
             bash /workspace/tools/build-apk.sh
 
       - name: Locate and rename APK
-        id: apk
         run: |
           APK=$(find . -name '*Signed.apk' | head -1)
           if [ -z "$APK" ]; then
@@ -50,14 +49,20 @@ jobs:
             exit 1
           fi
           echo "Found APK: $APK"
-          cp "$APK" de.stryi.vorratsuebersicht.sync_149.apk
-          echo "path=de.stryi.vorratsuebersicht.sync_149.apk" >> $GITHUB_OUTPUT
+          AAPT=$(find "$ANDROID_SDK_ROOT" -name aapt -type f 2>/dev/null | head -1)
+          VCODE=$("$AAPT" dump badging "$APK" 2>/dev/null | grep -oP "versionCode='\K[0-9]+" || echo "150")
+          echo "Version code: $VCODE"
+          cp "$APK" "de.stryi.vorratsuebersicht.sync_${VCODE}.apk"
+          echo "apk_name=de.stryi.vorratsuebersicht.sync_${VCODE}.apk" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: de.stryi.vorratsuebersicht.sync_149.apk
-          generate_release_notes: true
+          tag_name: v9.00-sync
+          name: v9.00-sync
+          body: "Automatischer CI-Build des Sync-Forks."
+          files: de.stryi.vorratsuebersicht.sync_*.apk
+          make_latest: true
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -66,7 +71,6 @@ jobs:
 
       - name: Restore cached F-Droid repo signing key
         uses: actions/cache@v4
-        id: cache-repo-key
         with:
           path: fdroid/fdroid-repo.keystore
           key: fdroid-repo-keystore-v1
@@ -76,8 +80,13 @@ jobs:
 
       - name: Generate F-Droid repo index
         run: |
+          APK_FILE=$(ls de.stryi.vorratsuebersicht.sync_*.apk 2>/dev/null | head -1)
+          if [ -z "$APK_FILE" ]; then
+            echo "No APK file found for F-Droid"
+            exit 1
+          fi
           mkdir -p fdroid/repo
-          cp de.stryi.vorratsuebersicht.sync_149.apk fdroid/repo/
+          cp "$APK_FILE" fdroid/repo/
           cd fdroid
           if [ -f fdroid-repo.keystore ]; then
             fdroid update --verbose

@@ -195,7 +195,7 @@ jobs:
       - name: Generate F-Droid repo index
         run: |
           mkdir -p fdroid/repo
-          cp server-apk/*.apk fdroid/repo/ 2>/dev/null || true
+          cp server-apk/*.apk client-android-apk/*.apk fdroid/repo/ 2>/dev/null || true
           cd fdroid
           if [ -f fdroid-repo.keystore ]; then
             fdroid update --verbose

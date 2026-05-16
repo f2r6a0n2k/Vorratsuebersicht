@@ -56,6 +56,10 @@ jobs:
               echo "=== Xamarin.Android framework versions ==="
               ls /usr/lib/mono/xbuild/Xamarin/Android/ | grep '^v' || echo "No v-dirs found"
 
+              echo "=== Patch TargetFrameworkVersion in csproj ==="
+              sed -i 's|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|' /workspace/Vorratsübersicht.csproj
+              grep 'TargetFrameworkVersion' /workspace/Vorratsübersicht.csproj
+
               echo "=== NuGet Restore ==="
               msbuild de.stryi.sln /restore /p:Configuration=Release
 
@@ -68,8 +72,7 @@ jobs:
                 /p:AndroidSigningStorePass=vorratsync \
                 /p:AndroidSigningKeyAlias=vorratsuebersicht \
                 /p:AndroidSigningKeyPass=vorratsync \
-                /p:OutputPath=/workspace/bin/ \
-                /p:TargetFrameworkVersion=v12.0
+                /p:OutputPath=/workspace/bin/
 
               echo "=== Build output ==="
               find /workspace -name "*.apk" -type f 2>/dev/null

@@ -95,7 +95,7 @@ namespace VorratsUebersicht
                     Task.Run(() => HandleRequest(ctx));
                 }
                 catch (ObjectDisposedException) { break; }
-                catch (HttpListenerException) { break; }
+                catch (HttpListenerException) { continue; }
                 catch (Exception ex)
                 {
                     OnError?.Invoke($"Listener Fehler: {ex.Message}");
@@ -258,6 +258,7 @@ namespace VorratsUebersicht
                     var buffer = Encoding.UTF8.GetBytes(content);
                     ctx.Response.ContentLength64 = buffer.Length;
                     ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                    ctx.Response.OutputStream.Close();
                 }
             }
             catch (Exception)

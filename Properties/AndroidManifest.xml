@@ -2,7 +2,7 @@
 <manifest 
 	android:versionCode="149"
 	android:versionName="9.00-sync"
-	package="de.stryi.Vorratsuebersicht"
+	package="de.stryi.vorratsuebersicht.sync"
 	android:installLocation="auto"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -21,7 +21,7 @@
 	<application android:label="@string/App_Name" android:requestLegacyExternalStorage="true" android:icon="@drawable/ic_launcher">
 		<provider
 			android:name="android.support.v4.content.FileProvider"
-			android:authorities="de.stryi.exportcsv.fileprovider"
+			android:authorities="de.stryi.vorratsuebersicht.sync.fileprovider"
 			android:grantUriPermissions="true"
 			android:exported="false">
 			<meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/provider_paths" />

@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +26,30 @@ jobs:
         run: |
           brew install mono
           brew install --cask xamarin-android
-          MONO_PREFIX=$(brew --prefix mono)
+          MONO_PREFIX=$(brew --prefix mono 2>/dev/null || echo "/opt/homebrew")
           echo "$MONO_PREFIX/bin" >> $GITHUB_PATH
-          echo "/Library/Frameworks/Mono.framework/Versions/Current/Commands" >> $GITHUB_PATH
+          for d in /Library/Frameworks/Mono.framework/Versions/Current/Commands \
+                    "$MONO_PREFIX/opt/mono/bin" \
+                    "/usr/local/bin"; do
+            [ -d "$d" ] && echo "$d" >> $GITHUB_PATH
+          done
 
-      - name: Generate APK signing keystore (dev)
+      - name: Locate msbuild
+        run: |
+          echo "=== which msbuild ==="
+          which msbuild 2>&1 || echo "not found"
+          echo "=== find msbuild ==="
+          find / -name msbuild -type f 2>/dev/null | head -10
+          echo "=== find msbuild.* ==="
+          find / -name 'msbuild*' -type f 2>/dev/null | head -10
+          echo "=== Mono commands ==="
+          ls /Library/Frameworks/Mono.framework/Versions/Current/Commands/ 2>/dev/null | head -20 || echo "dir not found"
+          echo "=== Xamarin.Android ==="
+          ls /Library/Frameworks/Xamarin.Android.framework/ 2>/dev/null | head -10 || echo "dir not found"
+          echo "=== brew ls mono ==="
+          brew ls mono 2>/dev/null | grep -i msbuild | head -10 || echo "no msbuild in mono"
+          echo "=== /etc/paths.d ==="
+          cat /etc/paths.d/* 2>/dev/null || echo "empty"
         run: |
           keytool -genkey -v -keystore vorratsuebersicht.keystore -alias vorratsuebersicht \
             -keyalg RSA -keysize 2048 -validity 10000 \

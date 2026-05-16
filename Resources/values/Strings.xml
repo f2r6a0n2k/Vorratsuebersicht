@@ -129,6 +129,8 @@
 	</string>
 	<string name="Settings_AppWiki" >App Wiki (Deutsch)</string>
 	<string name="Settings_AppWiki_Page" >https://github.com/Stryi/Vorratsuebersicht/wiki</string>
+	<string name="MasterMode_Guide" >Master-Modus Anleitung</string>
+	<string name="MasterMode_Guide_Page" >https://github.com/f2r6a0n2k/Vorratsuebersicht#master-modus</string>
   <string name="Settings_Datenschutz" >Datenschutzerklärung</string>
   <string name="Settings_Datenschutz_Link" >https://sites.google.com/site/vorratsuebersicht/datenschutzerklaerung</string>
   <string name="Settings_Licenses" >Lizenzbedingungen</string>

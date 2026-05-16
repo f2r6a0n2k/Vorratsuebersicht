@@ -32,11 +32,11 @@
             android:textColor="@android:color/white"
             android:layout_marginBottom="12dp" />
 
-        <!-- ZugangsschlÃ¼ssel -->
+        <!-- Zugangsschlüssel -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ZugangsschlÃ¼ssel (PIN):"
+            android:text="Zugangsschlüssel (PIN):"
             android:textStyle="bold"
             android:layout_marginBottom="2dp" />
 
@@ -100,7 +100,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AktivitÃ¤t:"
+            android:text="Aktivität:"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
@@ -117,6 +117,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/MasterMode_Guide"
+            android:autoLink="web"
+            android:textSize="12sp"
+            android:layout_marginTop="16dp"
+            android:textColor="#FF03DAC5" />
 
     </LinearLayout>
 </ScrollView>

@@ -221,7 +221,7 @@ namespace VorratsUebersicht
             RunOnUiThread(() =>
             {
                 var tv = new TextView(this) { Text = msg, TextSize = 11 };
-                tv.SetTextColor(Color.ParseColor("#666"));
+                tv.SetTextColor(Color.ParseColor("#666666"));
                 _logLayout.AddView(tv, 0);
 
                 var count = _logLayout.ChildCount;

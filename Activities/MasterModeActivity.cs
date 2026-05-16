@@ -10,7 +10,7 @@ using System.Text;
 
 namespace VorratsUebersicht
 {
-    [Activity(Label = "Master-Modus", Theme = "@style/AppTheme")]
+    [Activity(Label = "Master-Modus")]
     public class MasterModeActivity : Activity
     {
         private SyncServerListener _server;

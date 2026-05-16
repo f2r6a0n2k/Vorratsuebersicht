@@ -172,7 +172,8 @@ namespace VorratsUebersicht
                         : path.EndsWith(".js") ? "application/javascript; charset=utf-8"
                         : path.EndsWith(".json") ? "application/manifest+json; charset=utf-8"
                         : "text/html; charset=utf-8";
-                    ServeFile(ctx, "wwwroot" + (path == "/" ? "/index.html" : path), contentType);
+                    var filePath = (path == "/" || path == "") ? "/index.html" : path;
+                    ServeFile(ctx, "wwwroot" + filePath, contentType);
                     return;
                 }
 

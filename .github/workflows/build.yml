@@ -112,7 +112,7 @@ jobs:
 
       - name: Install & verify MAUI iOS workload
         run: |
-          dotnet workload install maui-ios
+          dotnet workload install maui-ios --version 10.0.200
           echo "=== Installed workloads ==="
           dotnet workload list
           echo "=== SDK info ==="

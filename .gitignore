@@ -220,6 +220,9 @@ FakesAssemblies/
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 
+# Keystores (generated in CI, secrets for prod)
+*.keystore
+
 # Visual Studio 6 build log
 *.plg
 

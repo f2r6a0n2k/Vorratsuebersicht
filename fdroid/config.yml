@@ -1,0 +1,8 @@
+repo_url: https://f2r6a0n2k.github.io/Vorratsuebersicht/
+repo_name: Vorratsübersicht Sync
+repo_description: Verteilte Datenbank-Synchronisation für Vorratsübersicht. LAN-Sync, Web UI, Off-Grid.
+archive_older: 0
+
+keypass: vorratsync
+keystorepass: vorratsync
+keystore: fdroid-repo.keystore

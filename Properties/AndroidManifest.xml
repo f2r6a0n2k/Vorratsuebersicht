@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest 
-	android:versionCode="148"
-	android:versionName="8.21"
+	android:versionCode="149"
+	android:versionName="9.00-sync"
 	package="de.stryi.Vorratsuebersicht"
 	android:installLocation="auto"
 	xmlns:android="http://schemas.android.com/apk/res/android">

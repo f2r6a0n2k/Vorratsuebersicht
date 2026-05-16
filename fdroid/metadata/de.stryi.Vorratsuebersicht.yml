@@ -1,9 +1,9 @@
 Categories: Utilities, Food & Drink
 License: GPL-3.0-only
-AuthorName: Christian Stryi / Fork
+AuthorName: f2r6a0n2k (Fork)
 WebSite: https://github.com/Stryi/Vorratsuebersicht
-SourceCode: https://github.com/f2r6a0n2k/vorratsuebersicht-sync
-IssueTracker: https://github.com/Stryi/Vorratsuebersicht/issues
+SourceCode: https://github.com/f2r6a0n2k/Vorratsuebersicht
+IssueTracker: https://github.com/f2r6a0n2k/Vorratsuebersicht/issues
 Changelog: https://github.com/Stryi/Vorratsuebersicht/blob/master/ReadMe%20-%20Release%20Notes.txt
 
 AutoName: Vorratsübersicht
@@ -26,15 +26,9 @@ Description: |-
     (LAN sync via REST API).
 
 RepoType: git
-Repo: https://github.com/f2r6a0n2k/vorratsuebersicht-sync
+Repo: https://github.com/f2r6a0n2k/Vorratsuebersicht
 
 Builds:
-  - versionName: 9.00-sync
-    versionCode: 149
-    commit: v9.00-sync
-    subdir: Vorratsübersicht
-    gradle:
-      - yes
 
 AutoUpdateMode: None
 UpdateCheckMode: None

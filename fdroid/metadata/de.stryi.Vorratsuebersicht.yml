@@ -28,7 +28,7 @@ Description: |-
 RepoType: git
 Repo: https://github.com/f2r6a0n2k/Vorratsuebersicht
 
-Builds:
+Builds: []
 
 AutoUpdateMode: None
 UpdateCheckMode: None

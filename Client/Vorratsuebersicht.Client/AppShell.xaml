@@ -6,7 +6,7 @@
        Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-        <ShellContent Title="Start" ContentTemplate="{DataTemplate pages:MainPage}" Icon="{OnPlatform Default=''}" />
+        <ShellContent Title="Start" ContentTemplate="{DataTemplate pages:MainPage}" />
         <ShellContent Title="Artikel" ContentTemplate="{DataTemplate pages:ArticlesPage}" />
         <ShellContent Title="Lager" ContentTemplate="{DataTemplate pages:StoragePage}" />
         <ShellContent Title="Einkauf" ContentTemplate="{DataTemplate pages:ShoppingPage}" />

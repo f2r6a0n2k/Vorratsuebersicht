@@ -139,7 +139,6 @@ namespace VorratsUebersicht
         public void OnPeersAvailable(WifiP2pDeviceList peers) => _onPeersAvailable?.Invoke(peers);
     }
 
-    [BroadcastReceiver(Enabled = true, Exported = false)]
     public class WifiDirectBroadcastReceiver : BroadcastReceiver
     {
         private readonly WifiP2pManager _manager;

@@ -59,7 +59,7 @@ jobs:
               echo "=== Patch csproj for Linux compatibility ==="
               sed -i \
                 -e "s|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|" \
-                -e '/<IntermediateOutputPath>/d' \
+                -e "/<IntermediateOutputPath>/d" \
                 /workspace/Vorratsübersicht.csproj
               grep -E "TargetFrameworkVersion|IntermediateOutputPath" /workspace/Vorratsübersicht.csproj || true
 

@@ -73,14 +73,9 @@ jobs:
           docker run --rm \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            mcr.microsoft.com/dotnet/sdk:10.0 \
+            mcr.microsoft.com/dotnet/sdk:10.0.100 \
             bash -c '
-              echo "SDK: $(dotnet --version)" &&
-              echo "SDKs: $(dotnet --list-sdks)" &&
-              dotnet workload install maui-android 2>&1 &&
-              echo "=== manifests ===" &&
-              find /usr/share/dotnet/sdk-manifests -name "microsoft.net.sdk.maui" -type d 2>/dev/null &&
-              ls /usr/share/dotnet/sdk-manifests/10*/microsoft.net.sdk.maui/ 2>/dev/null &&
+              dotnet workload install maui-android &&
               dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
                 -f net10.0-android -c Release \
                 -p:ApplicationVersion=${{ github.run_number }} \

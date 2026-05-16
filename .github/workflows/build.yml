@@ -68,23 +68,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Android APK in .NET Docker
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Build Android APK
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            mcr.microsoft.com/dotnet/sdk:10.0.100 \
-            bash -c '
-              set -e
-              apt-get update -qq && apt-get install -y -qq unzip curl
-              dotnet workload install maui-android
-              mkdir -p /tmp/dummy-android-sdk/platforms
-              dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
-                -f net10.0-android -c Release \
-                -p:AndroidSdkDirectory=/tmp/dummy-android-sdk \
-                -p:ApplicationVersion=${{ github.run_number }} \
-                -p:ApplicationDisplayVersion=1.0.${{ github.run_number }}
-            '
+          dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
+            -f net10.0-android -c Release \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:ApplicationDisplayVersion=1.0.${{ github.run_number }}
 
       - name: Locate and rename APK
         run: |
@@ -106,7 +102,7 @@ jobs:
 
   build-client-ios:
     name: Client iOS (VorratSync)
-    runs-on: macos-latest
+    runs-on: macos-16
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4

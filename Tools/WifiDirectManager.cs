@@ -39,7 +39,7 @@ namespace VorratsUebersicht
             _channel = _manager.Initialize(ctx, Looper.MainLooper, this);
         }
 
-        public void ChannelDisconnected()
+        public void OnChannelDisconnected()
         {
             _isConnected = false;
             OnDisconnected?.Invoke("WiFi-Direct Kanal getrennt");

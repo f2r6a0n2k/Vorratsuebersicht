@@ -81,10 +81,15 @@ jobs:
           cd fdroid
           fdroid update --verbose --create-key
 
+      - name: Prepare Pages publish dir
+        run: |
+          mkdir -p publish/repo
+          cp -r fdroid/repo/* publish/repo/
+
       - name: Deploy F-Droid repo to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./fdroid/repo
+          publish_dir: ./publish
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'

@@ -77,7 +77,9 @@ Sync:      bidirektional mit �nderungsprotokoll (SyncChangeLog-Tabelle)
            Volle Synchronisation oder inkrementell (nur �nderungen)
 Discovery: UDP-Broadcast "VORRAT_DISCOVERY" auf Port 5190
            Antwort: "VORRAT_MASTER|{hostname}|{port}|{databaseId}"
-Sicherheit: Derzeit kein Passwort-Schutz (nur im lokalen Netzwerk empfohlen)
+Sicherheit: Zugangsschl�ssel (PIN) kann im Master-Modus gesetzt werden.
+            Wird per X-Access-Key Header an die API gesendet. Ohne PIN ist
+            der Zugriff nur im lokalen Netzwerk m�glich.
 
 API-Endpunkte:
   GET  /api/discovery          - Informationen �ber den Master

@@ -966,8 +966,6 @@ namespace VorratsUebersicht
             cmd += " FROM StorageItem";
             cmd += " JOIN Article ON StorageItem.ArticleId = Article.ArticleId";
             cmd += " WHERE BestBefore < date('now')";
-            //cmd += " AND 1 = 2";
-
 
             var command = databaseConnection.CreateCommand(cmd);
             IList<QuantityResult> result = command.ExecuteQuery<QuantityResult>();
@@ -992,8 +990,7 @@ namespace VorratsUebersicht
             cmd += " WHERE (date(BestBefore,  (-WarnInDays || ' day')) <= date('now'))";
             cmd += " AND BestBefore >= date('now')";
             cmd += " AND WarnInDays <> 0";
-            //cmd += " OR 1 = 1";
-            
+
             var command = databaseConnection.CreateCommand(cmd);
             var result = command.ExecuteQuery<QuantityResult>();
             return result[0].Quantity;

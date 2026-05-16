@@ -40,7 +40,7 @@ namespace VorratsUebersicht
         public void Stop()
         {
             _running = false;
-            try { _udp?.Close(); } catch { }
+            try { _udp?.Close(); } catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Discovery Stop: {ex.Message}"); }
             _udp = null;
         }
 
@@ -120,8 +120,9 @@ namespace VorratsUebersicht
                     return results.ToArray();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"DiscoverMaster error: {ex.Message}");
                 return new string[0];
             }
         }

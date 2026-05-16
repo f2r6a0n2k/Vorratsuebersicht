@@ -262,38 +262,32 @@ namespace VorratsUebersicht
 
             string agentInfo = "Vorratsübersicht - Android - Version " + info.VersionName + " - https://sites.google.com/site/vorratsuebersicht";
 
-            WebRequest webRequest = WebRequest.Create(request);
-            webRequest.Credentials = CredentialCache.DefaultCredentials;
-            webRequest.Headers.Add("UserAgent", agentInfo);
-            webRequest.Timeout = 10000;
-
-            if (ServicePointManager.ServerCertificateValidationCallback == null)
+            var handler = new System.Net.Http.HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, errors) =>
             {
-                ServicePointManager.ServerCertificateValidationCallback += 
-                    (sender, certificate, chain, sslPolicy) => { return true; };
-            }
-
-            WebResponse response = webRequest.GetResponse();
-
-            string webResponse = string.Empty;
-
-            using (Stream dataStream = response.GetResponseStream())
+                if (errors == System.Net.Security.SslPolicyErrors.None)
+                    return true;
+                if (request.Contains("openfoodfacts.org") && errors == System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch)
+                    return true;
+                return false;
+            };
+            using (var client = new System.Net.Http.HttpClient(handler))
             {
-                StreamReader reader = new StreamReader(dataStream);
-                webResponse = reader.ReadToEnd();
+                client.Timeout = TimeSpan.FromSeconds(10);
+                client.DefaultRequestHeaders.Add("UserAgent", agentInfo);
+                var task = client.GetByteArrayAsync(request);
+                var responseBytes = task.GetAwaiter().GetResult();
+                var webResponse = Encoding.UTF8.GetString(responseBytes);
                 TRACE("Response from OpenFoodFacts.org (max 1024 Zeichen):\n{0}", webResponse);
+
+                var foodInfo = JsonConvert.DeserializeObject<FoodInformation>(webResponse);
+
+                var allInfo = JsonConvert.DeserializeObject(webResponse);
+                this.formatedResponseFromServer = JsonConvert.SerializeObject(allInfo, Formatting.Indented);
+                TRACE("JSon Antwort vom Server OpenFoodFacts.org:\n\n{0}", this.formatedResponseFromServer);
+
+                return foodInfo;
             }
-            
-            response.Close();
-
-            var foodInfo = JsonConvert.DeserializeObject<FoodInformation>(webResponse);
-
-            // Formatierte Ausgabe
-            var allInfo = JsonConvert.DeserializeObject(webResponse);
-            this.formatedResponseFromServer = JsonConvert.SerializeObject(allInfo, Formatting.Indented);
-            TRACE("JSon Antwort vom Server OpenFoodFacts.org:\n\n{0}", this.formatedResponseFromServer);
-
-            return foodInfo;
         }
 
         private Bitmap GetUrlPicture(string imageUrl)

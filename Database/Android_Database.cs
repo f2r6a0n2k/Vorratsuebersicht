@@ -557,8 +557,8 @@ namespace VorratsUebersicht
 
         private bool IsTableInDatabase(SQLiteConnection conn, string tableName)
         {
-            string cmd = string.Format("SELECT name FROM sqlite_master WHERE type = 'table' AND name = '{0}'", tableName);
-            IList<table_info> tableInfo = conn.Query<table_info>(cmd);
+            string cmd = "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?";
+            IList<table_info> tableInfo = conn.Query<table_info>(cmd, tableName);
             return (tableInfo.Count > 0);
         }
 

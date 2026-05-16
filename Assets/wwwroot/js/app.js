@@ -1,6 +1,6 @@
 const API = '';
 let currentArticles = [];
-let accessKey = localStorage.getItem('sync_access_key') || '';
+let accessKey = sessionStorage.getItem('sync_access_key') || '';
 let pendingAccessKeyPrompt = null;
 
 function apiFetch(path, options = {}) {
@@ -45,7 +45,7 @@ function promptAccessKey() {
         document.getElementById('access-key-input').focus();
         window.submitAccessKey = function() {
             const key = document.getElementById('access-key-input').value;
-            if (key) localStorage.setItem('sync_access_key', key);
+            if (key) sessionStorage.setItem('sync_access_key', key);
             m.classList.add('hidden');
             pendingAccessKeyPrompt = null;
             resolve(key || null);

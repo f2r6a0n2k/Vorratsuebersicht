@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Android.App;
@@ -27,10 +29,12 @@ namespace VorratsUebersicht
 
         public int Port { get; private set; }
         public bool IsRunning => _running;
-        public bool RequireAccessKey { get; set; } = false;
+        public bool RequireAccessKey { get; set; } = true;
 
         public event Action<string> OnClientConnected;
         public event Action<string> OnError;
+
+        private static readonly ConcurrentDictionary<string, RateLimitEntry> _rateLimit = new();
 
         /// <summary>Access-Key aus der Datenbank abrufen oder erzeugen.</summary>
         public static string GetOrCreateAccessKey()
@@ -41,12 +45,17 @@ namespace VorratsUebersicht
                 var key = db.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Key = 'SYNC_ACCESS_KEY'");
                 if (string.IsNullOrEmpty(key))
                 {
-                    key = Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
+                    const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+                    key = new string(Enumerable.Range(0, 12).Select(_ => chars[RandomNumberGenerator.GetInt32(chars.Length)]).ToArray());
                     db.Execute("INSERT INTO Settings (Key, Value) VALUES ('SYNC_ACCESS_KEY', ?)", key);
                 }
                 return key;
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetOrCreateAccessKey error: {ex}");
+                return null;
+            }
         }
 
         /// <summary>Access-Key validieren.</summary>
@@ -105,13 +114,19 @@ namespace VorratsUebersicht
 
         private void SetSecurityHeaders(HttpListenerContext ctx)
         {
-            ctx.Response.AppendHeader("Access-Control-Allow-Origin", "*");
+            var origin = ctx.Request.Headers["Origin"];
+            var sameOrigin = ctx.Request.Url.GetLeftPart(UriPartial.Authority);
+            if (!string.IsNullOrEmpty(origin) && origin != sameOrigin)
+            {
+                ctx.Response.AppendHeader("Access-Control-Allow-Origin", origin);
+                ctx.Response.AppendHeader("Vary", "Origin");
+            }
             ctx.Response.AppendHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
             ctx.Response.AppendHeader("Access-Control-Allow-Headers", "Content-Type, X-Access-Key");
             ctx.Response.AppendHeader("Access-Control-Max-Age", "86400");
             ctx.Response.AppendHeader("X-Content-Type-Options", "nosniff");
             ctx.Response.AppendHeader("X-Frame-Options", "DENY");
-            ctx.Response.AppendHeader("X-XSS-Protection", "0");
+            ctx.Response.AppendHeader("X-XSS-Protection", "1; mode=block");
             ctx.Response.AppendHeader("Cache-Control", "no-store");
             ctx.Response.AppendHeader("Content-Security-Policy",
                 "default-src 'self'; " +
@@ -154,6 +169,25 @@ namespace VorratsUebersicht
                 }
 
                 OnClientConnected?.Invoke($"{method} {path} von {ctx.Request.RemoteEndPoint}");
+
+                // Rate Limiting: max 120 Requests pro Minute pro IP
+                var clientIp = ctx.Request.RemoteEndPoint?.Address?.ToString() ?? "unknown";
+                var now = DateTime.UtcNow;
+                var entry = _rateLimit.GetOrAdd(clientIp, _ => new RateLimitEntry());
+                lock (entry)
+                {
+                    if (entry.WindowStart < now.AddMinutes(-1))
+                    {
+                        entry.WindowStart = now;
+                        entry.Count = 0;
+                    }
+                    entry.Count++;
+                    if (entry.Count > 120)
+                    {
+                        RespondJson(ctx, 429, new { error = "Too many requests" });
+                        return;
+                    }
+                }
 
                 // Pfad-Tiefe begrenzen (Schutz vor rekursiven Pfaden)
                 var pathParts = path.Split('/');
@@ -228,8 +262,8 @@ namespace VorratsUebersicht
             }
             catch (Exception ex)
             {
-                // Keine internen Details preisgeben (kein ex.Message in Produktion)
-                try { RespondJson(ctx, 500, new { error = "Internal server error" }); } catch { }
+                System.Diagnostics.Debug.WriteLine($"HandleRequest error: {ex.Message}");
+                try { RespondJson(ctx, 500, new { error = "Internal server error" }); } catch (Exception innerEx) { System.Diagnostics.Debug.WriteLine($"RespondJson error: {innerEx.Message}"); }
             }
         }
 
@@ -249,6 +283,11 @@ namespace VorratsUebersicht
         {
             try
             {
+                if (relativePath.Contains(".."))
+                {
+                    RespondJson(ctx, 400, new { error = "Invalid path" });
+                    return;
+                }
                 var files = Application.Context.Assets;
                 using (var stream = files.Open(relativePath))
                 using (var reader = new StreamReader(stream))
@@ -270,36 +309,9 @@ namespace VorratsUebersicht
 
         private void HandleDiscovery(HttpListenerContext ctx)
         {
-            var hostName = Java.Net.InetAddress.GetByName(null)?.HostName ?? "android";
-            var localIps = new List<string>();
-            try
-            {
-                var ifaces = Java.Net.NetworkInterface.NetworkInterfaces;
-                while (ifaces.HasMoreElements)
-                {
-                    var addr = ifaces.NextElement() as Java.Net.NetworkInterface;
-                    if (addr == null) continue;
-                    var inets = addr.InetAddresses;
-                    while (inets.HasMoreElements)
-                    {
-                        var inet = inets.NextElement() as Java.Net.InetAddress;
-                        if (inet == null) continue;
-                        var addrStr = inet.HostAddress;
-                        if (!inet.IsLoopbackAddress && addrStr.Contains('.'))
-                            localIps.Add(addrStr);
-                    }
-                }
-            }
-            catch { }
-
             RespondJson(ctx, 200, new
             {
-                name = "Vorratsuebersicht (Android-Master)",
-                version = "9.00-sync",
-                databaseId = GetDatabaseId(),
-                hostName = hostName,
-                localIPs = localIps.ToArray(),
-                framework = "Xamarin.Android",
+                name = "Vorratsuebersicht",
                 endpoints = new
                 {
                     articles = "/api/articles",
@@ -580,10 +592,24 @@ namespace VorratsUebersicht
             RespondJson(ctx, 200, result);
         }
 
+        private static readonly HashSet<string> ValidEntityTypes = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Article", "StorageItem", "ShoppingItem"
+        };
+        private static readonly HashSet<string> ValidOperations = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "create", "update", "delete"
+        };
+
         private void HandleSyncPush(HttpListenerContext ctx)
         {
             var body = ReadBody(ctx);
             var changes = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(body);
+            if (changes == null || changes.Count > 200)
+            {
+                RespondJson(ctx, 400, new { error = "Invalid or too many changes (max 200)" });
+                return;
+            }
             var results = new List<object>();
             var db = Android_Database.Instance.GetConnection();
 
@@ -596,6 +622,12 @@ namespace VorratsUebersicht
                     var operation = GetStr(change, "operation");
                     var data = change.ContainsKey("data") ? change["data"] as Dictionary<string, object> : null;
                     var entityId = change.ContainsKey("entityId") ? Convert.ToInt32(change["entityId"]) : (int?)null;
+
+                    if (!ValidEntityTypes.Contains(entityType) || !ValidOperations.Contains(operation))
+                    {
+                        results.Add(new { clientChangeId = clientId, accepted = false, error = "Invalid entityType or operation" });
+                        continue;
+                    }
 
                     try
                     {
@@ -821,6 +853,13 @@ namespace VorratsUebersicht
         public int Quantity { get; set; }
         public bool Bought { get; set; }
         public string ArticleName { get; set; }
+    }
+
+    /// <summary>Rate-Limiting-Eintrag (IP-basiert).</summary>
+    public class RateLimitEntry
+    {
+        public DateTime WindowStart { get; set; } = DateTime.UtcNow;
+        public int Count { get; set; }
     }
 
     /// <summary>Stream-Begrenzung auf maximale Gr��e (Schutz vor DoS).</summary>

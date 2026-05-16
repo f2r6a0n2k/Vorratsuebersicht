@@ -102,7 +102,7 @@ jobs:
 
   build-client-ios:
     name: Client iOS (VorratSync)
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4

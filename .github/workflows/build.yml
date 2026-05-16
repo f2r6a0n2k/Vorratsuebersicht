@@ -47,11 +47,14 @@ jobs:
               echo "=== Available platforms before ==="
               ls "$ANDROID_SDK_ROOT/platforms/" 2>/dev/null || echo "empty"
 
-              echo "=== Install Android SDK platform 33 ==="
-              yes | "$SDKMAN" "platforms;android-33"
+              echo "=== Install additional Android SDK platforms ==="
+              yes | "$SDKMAN" "platforms;android-31" "platforms;android-32" "platforms;android-33"
 
               echo "=== Available platforms after ==="
               ls "$ANDROID_SDK_ROOT/platforms/"
+
+              echo "=== Xamarin.Android framework versions ==="
+              ls /usr/lib/mono/xbuild/Xamarin/Android/ | grep '^v' || echo "No v-dirs found"
 
               echo "=== NuGet Restore ==="
               msbuild de.stryi.sln /restore /p:Configuration=Release
@@ -65,7 +68,8 @@ jobs:
                 /p:AndroidSigningStorePass=vorratsync \
                 /p:AndroidSigningKeyAlias=vorratsuebersicht \
                 /p:AndroidSigningKeyPass=vorratsync \
-                /p:OutputPath=/workspace/bin/
+                /p:OutputPath=/workspace/bin/ \
+                /p:TargetFrameworkVersion=v12.0
 
               echo "=== Build output ==="
               find /workspace -name "*.apk" -type f 2>/dev/null

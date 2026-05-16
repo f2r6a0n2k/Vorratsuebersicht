@@ -50,7 +50,7 @@ jobs:
             exit 1
           fi
           echo "Found APK: $APK"
-          mv "$APK" de.stryi.Vorratsuebersicht_149.apk
+          cp "$APK" de.stryi.Vorratsuebersicht_149.apk
           echo "path=de.stryi.Vorratsuebersicht_149.apk" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release

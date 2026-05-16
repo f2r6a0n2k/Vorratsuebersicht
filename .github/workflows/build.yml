@@ -1,4 +1,4 @@
-name: Build & Deploy F-Droid Repo
+name: Build & Deploy
 
 on:
   push:
@@ -10,9 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-server:
+    name: Server APK (Master-Modus)
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Generate APK signing keystore (dev)
+      - name: Generate APK signing keystore
         run: |
           keytool -genkey -v -keystore vorratsuebersicht.keystore -alias vorratsuebersicht \
             -keyalg RSA -keysize 2048 -validity 10000 \
@@ -37,6 +37,7 @@ jobs:
             bash /workspace/tools/build-apk.sh
 
       - name: Locate and rename APK
+        id: server-apk
         run: |
           APK=$(find . -name '*Signed.apk' | head -1)
           if [ -z "$APK" ]; then
@@ -55,14 +56,113 @@ jobs:
           cp "$APK" "de.stryi.vorratsuebersicht.sync_${VCODE}.apk"
           echo "apk_name=de.stryi.vorratsuebersicht.sync_${VCODE}.apk" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload server APK
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v9.00-sync
-          name: v9.00-sync
-          body: "Automatischer CI-Build des Sync-Forks."
-          files: de.stryi.vorratsuebersicht.sync_*.apk
-          make_latest: true
+          name: server-apk
+          path: de.stryi.vorratsuebersicht.sync_*.apk
+
+  build-client-android:
+    name: Client Android (VorratSync)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Restore NuGet packages
+        run: dotnet restore Client/Vorratsuebersicht.Client.sln
+
+      - name: Build Android APK
+        run: |
+          dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
+            -f net8.0-android -c Release \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:ApplicationDisplayVersion=1.0.${{ github.run_number }}
+
+      - name: Locate and rename APK
+        run: |
+          APK=$(find Client/Vorratsuebersicht.Client/bin/Release -name '*.apk' | head -1)
+          if [ -z "$APK" ]; then
+            echo "No APK found"
+            find Client/Vorratsuebersicht.Client/bin/Release -type f 2>/dev/null
+            exit 1
+          fi
+          cp "$APK" "VorratSync-1.0.${{ github.run_number }}-android.apk"
+
+      - name: Upload client Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-android-apk
+          path: VorratSync-*-android.apk
+
+  build-client-ios:
+    name: Client iOS (VorratSync)
+    runs-on: macos-latest
+    if: vars.ENABLE_IOS_BUILD == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install MAUI iOS workload
+        run: dotnet workload install maui-ios
+
+      - name: Restore NuGet packages
+        run: dotnet restore Client/Vorratsuebersicht.Client.sln
+
+      - name: Build iOS IPA
+        run: |
+          dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
+            -f net8.0-ios -c Release \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -p:ApplicationDisplayVersion=1.0.${{ github.run_number }} \
+            -p:CodesignKey='${{ secrets.IOS_CODESIGN_KEY }}' \
+            -p:CodesignProvision='${{ secrets.IOS_PROVISIONING_PROFILE }}'
+
+      - name: Locate and rename IPA
+        run: |
+          IPA=$(find Client/Vorratsuebersicht.Client/bin/Release -name '*.ipa' | head -1)
+          if [ -z "$IPA" ]; then
+            echo "No IPA found"
+            find Client/Vorratsuebersicht.Client/bin/Release -type f 2>/dev/null
+            exit 1
+          fi
+          cp "$IPA" "VorratSync-1.0.${{ github.run_number }}-ios.ipa"
+
+      - name: Upload client iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-ios-ipa
+          path: VorratSync-*-ios.ipa
+
+  deploy:
+    name: Release & F-Droid Repo
+    needs: [build-server, build-client-android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: List artifacts
+        run: |
+          echo "=== Server APK ==="
+          ls -la server-apk/ 2>/dev/null || echo "(none)"
+          echo "=== Client Android APK ==="
+          ls -la client-android-apk/ 2>/dev/null || echo "(none)"
+          echo "=== Client iOS IPA ==="
+          ls -la client-ios-ipa/ 2>/dev/null || echo "(none)"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -80,13 +180,8 @@ jobs:
 
       - name: Generate F-Droid repo index
         run: |
-          APK_FILE=$(ls de.stryi.vorratsuebersicht.sync_*.apk 2>/dev/null | head -1)
-          if [ -z "$APK_FILE" ]; then
-            echo "No APK file found for F-Droid"
-            exit 1
-          fi
           mkdir -p fdroid/repo
-          cp "$APK_FILE" fdroid/repo/
+          cp server-apk/*.apk fdroid/repo/ 2>/dev/null || true
           cd fdroid
           if [ -f fdroid-repo.keystore ]; then
             fdroid update --verbose
@@ -98,6 +193,24 @@ jobs:
         run: |
           mkdir -p publish/repo
           cp -r fdroid/repo/* publish/repo/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v9.00-sync
+          name: v9.00-sync
+          body: |
+            ## Server APK (Master-Modus)
+            - `de.stryi.vorratsuebersicht.sync_*.apk` – Sync-Server für Android (Master-Modus)
+
+            ## Client App (VorratSync)
+            - `VorratSync-*-android.apk` – Sync-Client für Android
+            - `VorratSync-*-ios.ipa` – Sync-Client für iOS (falls vorhanden)
+          files: |
+            server-apk/*.apk
+            client-android-apk/*.apk
+            client-ios-ipa/*.ipa
+          make_latest: true
 
       - name: Deploy F-Droid repo to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

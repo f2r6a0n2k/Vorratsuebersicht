@@ -1,5 +1,63 @@
 const API = '';
 let currentArticles = [];
+let accessKey = localStorage.getItem('sync_access_key') || '';
+let pendingAccessKeyPrompt = null;
+
+function apiFetch(path, options = {}) {
+    const doFetch = (key) => {
+        const opts = { ...options };
+        const headers = { ...(opts.headers || {}) };
+        if (key) headers['X-Access-Key'] = key;
+        opts.headers = headers;
+        return fetch(API + path, opts);
+    };
+    return doFetch(accessKey).then(async res => {
+        if (res.status === 401) {
+            const key = await promptAccessKey();
+            if (key) {
+                accessKey = key;
+                return doFetch(key);
+            }
+            throw new Error('Access denied');
+        }
+        return res;
+    });
+}
+
+function promptAccessKey() {
+    if (pendingAccessKeyPrompt) return pendingAccessKeyPrompt;
+    pendingAccessKeyPrompt = new Promise(resolve => {
+        const m = document.getElementById('modal');
+        document.getElementById('modal-body').innerHTML = `
+            <h2>Zugangsschlüssel (PIN)</h2>
+            <p style="color:#e74c3c;margin-bottom:1rem">Zugangsschlüssel erforderlich</p>
+            <form onsubmit="event.preventDefault(); submitAccessKey()">
+                <div class="form-group">
+                    <input id="access-key-input" type="password" placeholder="PIN eingeben" autofocus style="font-size:1.2rem;text-align:center;letter-spacing:0.3em">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-danger" onclick="cancelAccessKey()">Abbrechen</button>
+                    <button type="submit" class="btn-success">Bestätigen</button>
+                </div>
+            </form>
+        `;
+        m.classList.remove('hidden');
+        document.getElementById('access-key-input').focus();
+        window.submitAccessKey = function() {
+            const key = document.getElementById('access-key-input').value;
+            if (key) localStorage.setItem('sync_access_key', key);
+            m.classList.add('hidden');
+            pendingAccessKeyPrompt = null;
+            resolve(key || null);
+        };
+        window.cancelAccessKey = function() {
+            m.classList.add('hidden');
+            pendingAccessKeyPrompt = null;
+            resolve(null);
+        };
+    });
+    return pendingAccessKeyPrompt;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tab').forEach(t => {
@@ -23,11 +81,15 @@ function closeModal() {
 // ===== Articles =====
 
 async function loadArticles() {
-    const search = document.getElementById('article-search')?.value || '';
-    const params = search ? '?search=' + encodeURIComponent(search) : '';
-    const res = await fetch(API + '/api/articles' + params);
-    currentArticles = await res.json();
-    renderArticles();
+    try {
+        const search = document.getElementById('article-search')?.value || '';
+        const params = search ? '?search=' + encodeURIComponent(search) : '';
+        const res = await apiFetch('/api/articles' + params);
+        currentArticles = await res.json();
+        renderArticles();
+    } catch (e) {
+        console.error('loadArticles:', e);
+    }
 }
 
 function renderArticles() {
@@ -115,29 +177,41 @@ async function saveArticle(event, id) {
     data.prefQuantity = data.prefQuantity ? parseInt(data.prefQuantity) : null;
     data.warnInDays = data.warnInDays ? parseInt(data.warnInDays) : null;
 
-    if (id) {
-        await fetch(API + '/api/articles/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    } else {
-        await fetch(API + '/api/articles', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+    try {
+        if (id) {
+            await apiFetch('/api/articles/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        } else {
+            await apiFetch('/api/articles', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        }
+        closeModal();
+        loadArticles();
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler beim Speichern: ' + e.message);
     }
-    closeModal();
-    loadArticles();
-    loadStorageItems();
 }
 
 async function deleteArticle(id) {
     if (!confirm('Wirklich l\u00f6schen?')) return;
-    await fetch(API + '/api/articles/' + id, { method: 'DELETE' });
-    loadArticles();
-    loadStorageItems();
+    try {
+        await apiFetch('/api/articles/' + id, { method: 'DELETE' });
+        loadArticles();
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler beim L\u00f6schen: ' + e.message);
+    }
 }
 
 // ===== Storage Items =====
 
 async function loadStorageItems() {
-    const res = await fetch(API + '/api/storage-items');
-    const items = await res.json();
-    renderStorageItems(items);
+    try {
+        const res = await apiFetch('/api/storage-items');
+        const items = await res.json();
+        renderStorageItems(items);
+    } catch (e) {
+        console.error('loadStorageItems:', e);
+    }
 }
 
 function renderStorageItems(items) {
@@ -205,15 +279,23 @@ async function saveStorageItem(event) {
     data.bestBeforeDate = data.bestBeforeDate || null;
     data.storageName = data.storageName || null;
 
-    await fetch(API + '/api/storage-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    closeModal();
-    loadStorageItems();
+    try {
+        await apiFetch('/api/storage-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        closeModal();
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler beim Speichern: ' + e.message);
+    }
 }
 
 async function deleteStorageItem(id) {
     if (!confirm('Wirklich l\u00f6schen?')) return;
-    await fetch(API + '/api/storage-items/' + id, { method: 'DELETE' });
-    loadStorageItems();
+    try {
+        await apiFetch('/api/storage-items/' + id, { method: 'DELETE' });
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler beim L\u00f6schen: ' + e.message);
+    }
 }
 
 function editStorageItem(id) {
@@ -224,9 +306,13 @@ function editStorageItem(id) {
 // ===== Shopping Items =====
 
 async function loadShoppingItems() {
-    const res = await fetch(API + '/api/shopping-items');
-    const items = await res.json();
-    renderShoppingItems(items);
+    try {
+        const res = await apiFetch('/api/shopping-items');
+        const items = await res.json();
+        renderShoppingItems(items);
+    } catch (e) {
+        console.error('loadShoppingItems:', e);
+    }
 }
 
 function renderShoppingItems(items) {
@@ -288,49 +374,66 @@ async function saveShoppingItem(event) {
     const article = currentArticles.find(a => a.articleId === data.articleId);
     data.articleName = article?.name || null;
 
-    await fetch(API + '/api/shopping-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
-    closeModal();
-    loadShoppingItems();
+    try {
+        await apiFetch('/api/shopping-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        closeModal();
+        loadShoppingItems();
+    } catch (e) {
+        alert('Fehler beim Speichern: ' + e.message);
+    }
 }
 
 async function toggleShoppingItem(id, checked) {
-    const res = await fetch(API + '/api/shopping-items/' + id);
-    const item = await res.json();
-    item.isChecked = checked;
-    await fetch(API + '/api/shopping-items/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
-    loadShoppingItems();
+    try {
+        const res = await apiFetch('/api/shopping-items/' + id);
+        const item = await res.json();
+        item.isChecked = checked;
+        await apiFetch('/api/shopping-items/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
+        loadShoppingItems();
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+    }
 }
 
 async function deleteShoppingItem(id) {
     if (!confirm('Wirklich l\u00f6schen?')) return;
-    await fetch(API + '/api/shopping-items/' + id, { method: 'DELETE' });
-    loadShoppingItems();
+    try {
+        await apiFetch('/api/shopping-items/' + id, { method: 'DELETE' });
+        loadShoppingItems();
+    } catch (e) {
+        alert('Fehler beim L\u00f6schen: ' + e.message);
+    }
 }
 
 // ===== Sync =====
 
 async function loadSyncChanges() {
-    const since = prompt('Alle \u00c4nderungen seit (ISO8601, leer f\u00fcr alle):', '');
-    const params = since ? '?since=' + encodeURIComponent(since) : '';
-    const res = await fetch(API + '/api/sync/changes' + params);
-    const changes = await res.json();
-    const el = document.getElementById('sync-changes');
-    document.getElementById('sync-info').textContent = changes.length + ' \u00c4nderungen gefunden.';
-    el.innerHTML = changes.map(c => `
-        <div class="data-item">
-            <div class="item-main">
-                <div class="item-name">${esc(c.entityType)} #${c.entityId} &mdash; ${esc(c.operation)}</div>
-                <div class="item-detail">${new Date(c.timestamp).toLocaleString('de-DE')}</div>
+    try {
+        const since = prompt('Alle \u00c4nderungen seit (ISO8601, leer f\u00fcr alle):', '');
+        if (since === null) return;
+        const params = since ? '?since=' + encodeURIComponent(since) : '';
+        const res = await apiFetch('/api/sync/changes' + params);
+        const changes = await res.json();
+        const el = document.getElementById('sync-changes');
+        document.getElementById('sync-info').textContent = changes.length + ' \u00c4nderungen gefunden.';
+        el.innerHTML = changes.map(c => `
+            <div class="data-item">
+                <div class="item-main">
+                    <div class="item-name">${esc(c.entityType)} #${c.entityId} &mdash; ${esc(c.operation)}</div>
+                    <div class="item-detail">${new Date(c.timestamp).toLocaleString('de-DE')}</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    } catch (e) {
+        console.error('loadSyncChanges:', e);
+    }
 }
 
 // ===== Server Info =====
 
 async function loadServerInfo() {
     try {
-        const res = await fetch(API + '/api/discovery');
+        const res = await apiFetch('/api/discovery');
         const info = await res.json();
         document.getElementById('server-info').textContent = info.name + ' (' + info.hostName + ' - ' + (info.localIps || []).join(', ') + ')';
     } catch {

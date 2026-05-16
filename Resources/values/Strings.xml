@@ -318,6 +318,18 @@
 
 	<string name="Picture" >Bild</string>
 	<string name="ThreePoints" >...</string>
+
+	<!-- Sync / Master-Modus -->
+	<string name="Sync_MasterMode" >Master-Modus (Daten teilen)</string>
+	<string name="Sync_ClientMode" >Client-Modus (mit Master verbinden)</string>
+	<string name="Sync_ServerUrl" >Server-URL (z.B. http://192.168.1.42:5191)</string>
+	<string name="Sync_Connect" >Verbinden</string>
+	<string name="Sync_Disconnect" >Trennen</string>
+	<string name="Sync_SyncNow" >Jetzt synchronisieren</string>
+	<string name="Sync_LastSync" >Letzte Sync: {0}</string>
+	<string name="Sync_Connected" >Verbunden</string>
+	<string name="Sync_Disconnected" >Getrennt</string>
+	<string name="Sync_OpenMasterMode" >Master-Modus öffnen</string>
 	<string name="ListView_Option" >&#8942;</string>
 	<!-- Drei vertikale Punkte für das Menü in den Listen. -->
 	<string name="LightOnOff" >Licht an/aus</string>

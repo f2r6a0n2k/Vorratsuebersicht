@@ -1,5 +1,4 @@
-using System.Diagnostics;
-
+using System;
 using SQLite;
 
 namespace VorratsUebersicht
@@ -17,7 +16,7 @@ namespace VorratsUebersicht
         public int? WarnInDays {get; set;}
         public decimal? Size {get; set; }
         public string Unit {get; set;}
-		public int?   Calorie {get; set;}
+        public int?   Calorie {get; set;}
         public string Notes {get; set;}
         public string EANCode {get; set;}
         public string StorageName { get; set;}
@@ -25,5 +24,7 @@ namespace VorratsUebersicht
         public int? PrefQuantity { get; set; }
         public string Supermarket { get; set; }
         public decimal? Price { get; set; }
+        public string CreatedAt { get; set; }
+        public string UpdatedAt { get; set; }
     }
 }

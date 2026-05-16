@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Vorratsuebersicht.Client.Pages.ShoppingPage"
+             Title="Einkaufszettel">
+
+    <CollectionView x:Name="ShoppingList" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />
+                            <HorizontalStackLayout Spacing="12">
+                                <Label Text="{Binding Quantity, StringFormat='Menge: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                                <Label Text="{Binding Bought, StringFormat='Gekauft: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Frame>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+
+        <CollectionView.EmptyView>
+            <Label Text="Einkaufszettel ist leer" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+        </CollectionView.EmptyView>
+    </CollectionView>
+</ContentPage>

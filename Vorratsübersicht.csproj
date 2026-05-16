@@ -138,9 +138,20 @@
     <Compile Include="Views\StorageItemQuantityListViewAdapter.cs" />
     <Compile Include="Views\StorageItemListView.cs" />
     <Compile Include="Views\StorageItemListViewAdapter.cs" />
+    <Compile Include="Activities\MasterModeActivity.cs" />
+    <Compile Include="Database\SyncChangeLog.cs" />
+    <Compile Include="Service\SyncClient.cs" />
+    <Compile Include="Tools\SyncServerListener.cs" />
+    <Compile Include="Tools\DiscoveryService.cs" />
+    <Compile Include="Tools\WifiDirectManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="Assets\Vorraete_Demo.db3" />
+    <AndroidAsset Include="Assets\wwwroot\index.html" />
+    <AndroidAsset Include="Assets\wwwroot\css\app.css" />
+    <AndroidAsset Include="Assets\wwwroot\js\app.js" />
+    <AndroidAsset Include="Assets\wwwroot\manifest.json" />
+    <AndroidAsset Include="Assets\wwwroot\sw.js" />
     <None Include="ReadMe.md" />
     <None Include="Properties\AndroidManifest.xml" />
   </ItemGroup>
@@ -337,6 +348,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\layout\Spinner_Gray.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\layout\MasterMode.axml" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\menu\MasterMode_menu.xml" />
   </ItemGroup>
   <ItemGroup>
     <AndroidResource Include="Resources\drawable-xxhdpi\baseline_add_box_white_24.png" />

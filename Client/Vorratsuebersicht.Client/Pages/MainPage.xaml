@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Vorratsuebersicht.Client.Pages.MainPage"
+             Title="VorratSync">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+
+            <Label Text="Vorrats&#xfc;bersicht Sync-Client"
+                   FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"
+                   TextColor="{StaticResource Secondary}" />
+
+            <Label Text="Synchronisieren Sie Ihre Vorratsdaten mit dem Master-Ger&#xe4;t."
+                   FontSize="14" HorizontalTextAlignment="Center"
+                   TextColor="{StaticResource Gray}" />
+
+            <!-- Status-Karte -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="8">
+                    <Label x:Name="StatusLabel" Text="Nicht verbunden" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Danger}" />
+                    <Label x:Name="DetailLabel" Text="Tippen Sie auf Sync, um einen Master zu suchen" FontSize="13" TextColor="{StaticResource Gray}" />
+
+                    <BoxView HeightRequest="1" Color="{StaticResource Light}" Margin="0,8" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="Artikel:" FontSize="13" TextColor="{StaticResource Gray}" />
+                        <Label x:Name="ArticleCountLabel" Text="0" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="| Lager:" FontSize="13" TextColor="{StaticResource Gray}" />
+                        <Label x:Name="StorageCountLabel" Text="0" FontSize="13" FontAttributes="Bold" />
+                        <Label Text="| Einkauf:" FontSize="13" TextColor="{StaticResource Gray}" />
+                        <Label x:Name="ShoppingCountLabel" Text="0" FontSize="13" FontAttributes="Bold" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Kurzanleitung -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="So funktioniert's:" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+                    <Label Text="1. &#x1f4f1; Auf dem Telefon: Master-Modus in der Vorrats&#xfc;bersicht-App starten" FontSize="13" />
+                    <Label Text="2. &#x1f50d; Im Sync-Tab nach Master suchen (UDP-Broadcast)" FontSize="13" />
+                    <Label Text="3. &#x1f91d; Verbinden und Daten synchronisieren" FontSize="13" />
+                    <Label Text="4. &#x1f504; Bei jeder &#xc4;nderung erneut synchronisieren" FontSize="13" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <Label Text="L&#xe4;uft im selben Netzwerk - kein Internet n&#xf6;tig!"
+                   FontSize="12" HorizontalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

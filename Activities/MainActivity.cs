@@ -225,6 +225,10 @@ namespace VorratsUebersicht
                     this.SwitchDatabase();
 
                     return true;
+
+                case Resource.Id.Main_Menu_MasterMode:
+                    StartActivity(new Intent(this, typeof(MasterModeActivity)));
+                    return true;
             }
 
             return false;

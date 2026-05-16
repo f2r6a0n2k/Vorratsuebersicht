@@ -10,4 +10,7 @@
         android:icon="@drawable/baseline_settings_white_24"
         android:title="@string/Settings_Title"
         app:showAsAction="always" />
+  <item android:id="@+id/Main_Menu_MasterMode"
+        android:title="@string/Sync_OpenMasterMode"
+        app:showAsAction="never" />
 </menu>

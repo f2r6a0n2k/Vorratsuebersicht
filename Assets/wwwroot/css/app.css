@@ -1,0 +1,67 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+
+.nav { background: #2c3e50; color: white; }
+.nav-inner { max-width: 1200px; margin: 0 auto; padding: 0.75rem 1rem; }
+.nav h1 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+.nav-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.tab { background: none; border: none; color: rgba(255,255,255,0.7); padding: 0.5rem 1rem; cursor: pointer; border-radius: 4px 4px 0 0; font-size: 0.9rem; }
+.tab:hover { color: white; background: rgba(255,255,255,0.1); }
+.tab.active { color: white; background: rgba(255,255,255,0.15); }
+
+.main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+.toolbar input[type="text"] { flex: 1; min-width: 200px; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+.toolbar button, .btn { background: #3498db; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+.toolbar button:hover, .btn:hover { background: #2980b9; }
+.btn-danger { background: #e74c3c; }
+.btn-danger:hover { background: #c0392b; }
+.btn-success { background: #27ae60; }
+.btn-success:hover { background: #219a52; }
+
+.data-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.data-item { background: white; border-radius: 6px; padding: 0.75rem 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.data-item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.data-item .item-main { flex: 1; min-width: 200px; }
+.data-item .item-name { font-weight: 600; font-size: 1rem; }
+.data-item .item-detail { font-size: 0.85rem; color: #666; margin-top: 0.2rem; }
+.data-item .item-actions { display: flex; gap: 0.25rem; }
+.data-item .item-actions button { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+.expired { border-left: 4px solid #e74c3c; }
+.warning { border-left: 4px solid #f39c12; }
+.checked { opacity: 0.5; text-decoration: line-through; }
+
+/* Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal.hidden { display: none; }
+.modal-content { background: white; border-radius: 8px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
+.modal-close { position: absolute; top: 0.5rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #999; }
+.modal-close:hover { color: #333; }
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.85rem; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+.form-group textarea { resize: vertical; min-height: 60px; }
+.form-row { display: flex; gap: 1rem; }
+.form-row .form-group { flex: 1; }
+.form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+.sync-panel { background: white; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.sync-info { color: #666; font-size: 0.9rem; }
+
+.about-panel { background: white; border-radius: 6px; padding: 2rem; max-width: 600px; }
+.about-panel h2 { margin-bottom: 0.5rem; }
+.about-panel p { color: #666; margin-bottom: 0.5rem; }
+.about-panel hr { margin: 1rem 0; border: none; border-top: 1px solid #eee; }
+.about-panel pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; font-size: 0.85rem; overflow-x: auto; }
+
+@media (max-width: 600px) {
+  .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .tab { white-space: nowrap; }
+  .data-item { flex-direction: column; align-items: stretch; }
+  .data-item .item-actions { justify-content: flex-end; }
+  .form-row { flex-direction: column; gap: 0; }
+}

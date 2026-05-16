@@ -1,59 +1,64 @@
-﻿
-# Vorratsübersicht - Mindesthaltbarkeitsdatum von Vorräten überwachen
+﻿# Vorratsübersicht - Haltbarkeitsdatum überwachen
 
-Mit dieser App können Sie Mindesthaltbarkeitsdatum der Lebensmittel in Ihren Vorräten überwachen.
+Mit dieser App behalten Sie den Überblick über Ihre Vorräte und deren Mindesthaltbarkeitsdatum. Nie wieder Lebensmittel wegwerfen, weil Sie vergessen haben, was im Schrank steht!
 
-## Funktionsweise:
+## Neu: Daten auf mehreren Geräten synchronisieren
 
-Zuerst wird ein Artikel (einmalig) in "Artikelliste" mit seinen Angaben und ggf. Bild erfasst.
+Seit Version 9.00 können Sie Ihre Daten mit anderen Geräten teilen - **ganz ohne Internet, Cloud oder Server**. Die Geräte müssen sich nur im selben WLAN befinden. 
 
-![](Screenshots/Screenshot_003.png)
+- **Telefon als Master**: Ein Gerät gibt die Daten frei (Master-Modus)
+- **Andere Geräte lesen mit**: Browser, Tablet, Laptop, PC
+- **Sync-Client App**: Für Windows, Mac, Linux und iPhone verfügbar
+- **Funktioniert off-grid**: Auch ohne Internet (z.B. über Handy-Hotspot)
+- **Web-Oberfläche**: Jeder Browser kann die Daten anzeigen und bearbeiten
 
-Danach kann man im "Lagerbestand" mit "+" den Artikel hinzufügen,
+👉 **[Zur ausführlichen Anleitung: ReadMe - Verteilte Datenbanken.txt](ReadMe%20-%20Verteilte%20Datenbanken.txt)**
 
-![](Screenshots/Screenshot_005.png)
+### Kurzanleitung für die Synchronisation:
 
-das Ablaufdatum ausgewählt und die Menge erfassen.
+1. Auf dem Telefon: App öffnen → Master-Modus → "Server starten"
+2. Die angezeigte Adresse (z.B. `http://192.168.1.42:5191/`) im Browser eines anderen Geräts öffnen
+3. Oder: Die VorratSync-App auf Windows/Mac/Linux/iPhone starten und nach Master suchen lassen
 
-![](Screenshots/Screenshot_006.png)
+## Funktionsweise
 
-Nähert sich das Ablaufdatum oder wird das Datum überschritten, so erscheint eine Warnung in der App.
-Für die Warnung vor dem Ablaufdatum kann pro Artikel Anzahl Tage definieren werden.
+1. **Artikel anlegen** - Einmalig in der Artikelliste mit Namen, Kategorie, EAN-Code, etc. erfassen
+2. **Lagerbestand führen** - Artikel mit Menge und Haltbarkeitsdatum zum Lager hinzufügen
+3. **Warnungen erhalten** - Die App zeigt an, welche Artikel bald ablaufen oder schon abgelaufen sind
+4. **Einkaufsliste** - Fehlende Artikel können direkt auf die Einkaufsliste gesetzt werden
 
-Wird beim Artikel der EAN Code eingetragen (oder gescannt),
-so kann man über "Artikel scannen" direkt den Lagerbestand oder die Artikelangaben bearbeiten.
-Die Artikeldaten werden über den EAN Code nicht automatisch (z.B. über's Internet) ermittelt.
+## Testdatenbank
 
-## Testdatenbank:
+Zum Kennenlernen können Sie auf eine Testdatenbank mit Beispiel-Artikeln umschalten.
 
-Zum Testen oder Kennenlernen der App kann man auf eine Testdatenbank umschalten.
-Diese enthält schon einige Artikel (ist keine Werbung für die Produkte).
+## Für Entwickler
 
-## Projektentwicklung:
+Die App ist in C# mit Xamarin.Android geschrieben. Der Sync-Server verwendet eine REST-API (JSON über HTTP). Für andere Plattformen gibt es einen .NET MAUI Client.
 
-Die App ist mein privates Hobby-Projekt, was in meiner Freizeit entwickelt wird.
-Die Benutzung erfolgt auf eigene Gefahr. Die App wird gewissenhaft entwickelt, 
-dennoch kann ich für Schäden durch App oder Datenverlust keine Haftung übernehmen.
-Für die Weiterentwicklung sind Programmierer oder Helfer (für Dokumentation,
-Design oder als Betatester) herzlich willkommen.
+### Projektstruktur
 
-## Fehler berichten:
+- `Activities/` - Android Bildschirme (Aktivitäten)
+- `Database/` - Datenbank-Zugriff und Modelle
+- `Tools/` - Hilfsklassen (SyncServer, Discovery, WiFi-Direct)
+- `Service/` - Hintergrunddienste (Sync-Client)
+- `Assets/wwwroot/` - Web-Oberfläche (HTML/CSS/JS/PWA)
+- `Client/` - .NET MAUI Cross-Platform Client für Windows/Mac/Linux/iOS
 
-Diese App wird ständig weiterentwickelt und kann noch Fehler enthalten.
+### Wichtige Neuerungen (Version 9.00+)
 
-Sollte Ihnen ein Fehler aufgefallen sein, bitte diesen genau beschreiben 
-(wie kann er nachgestellt werden), möglichst Screenshots erstellen und an die 
-unten aufgeführte E-Mail-Adresse versenden.
+- SyncChangeLog: Alle Datenänderungen werden protokolliert
+- REST-API mit CORS-Unterstützung und CamelCase-JSON
+- UDP Discovery: Automatische Mastersuche im Netzwerk
+- WiFi-Direct: Vorbereitung für direkte Geräte-zu-Geräte Verbindung
+- Web UI als Progressive Web App (PWA) mit Service Worker
+- .NET MAUI Client für Windows, Mac, Linux und iOS
 
+## Bekannte Probleme
 
-### Bekannte Probleme und Fehler:
+1. Deutsche Umlaute werden nicht korrekt sortiert (SQLite-Einschränkung)
+2. Keine Push-Benachrichtigungen bei ablaufenden Artikeln
+3. Die Sync-Funktion hat noch keine Passwort-Absicherung (daher nur im eigenen Netzwerk nutzen)
 
-1. Die Sortierung der Artikel berücksichtig nicht die deutschen Umlaute.
-Die eingesetzte SQLite Datenbank unterstützt diese Sortierung nicht.
+## Lizenz
 
-2. Eine Popup Benachrichtigung findet nicht statt. 
-Um zu überprüfen, ob das Mindesthaltbarkeitsdatum
-überschritten wurde, muss die App gestartet werden.
-
-3. Die Datenbank befindet sich lokal auf dem Smartphone
-und kann somit nicht von mehreren Benutzern verwendet werden.
+Siehe [LICENSE](LICENSE)

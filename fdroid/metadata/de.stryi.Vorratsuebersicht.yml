@@ -1,0 +1,42 @@
+Categories: Utilities, Food & Drink
+License: GPL-3.0-only
+AuthorName: Christian Stryi / Fork
+WebSite: https://github.com/Stryi/Vorratsuebersicht
+SourceCode: https://github.com/f2r6a0n2k/vorratsuebersicht-sync
+IssueTracker: https://github.com/Stryi/Vorratsuebersicht/issues
+Changelog: https://github.com/Stryi/Vorratsuebersicht/blob/master/ReadMe%20-%20Release%20Notes.txt
+
+AutoName: Vorratsübersicht
+Summary: Monitor best-before dates of your food supplies
+Description: |-
+    Keep track of your pantry items and their expiration dates.
+    Never throw away food because you forgot what's in your cupboard!
+
+    Features:
+    * Article management with categories, barcodes, and images
+    * Inventory tracking with quantities and best-before dates
+    * Expiry warnings and alerts
+    * Shopping list management
+    * Barcode scanning
+    * LAN sync: share data between multiple devices without internet
+    * Web interface: access your data from any browser
+    * Works off-grid: no internet connection required
+
+    This is a fork that adds distributed database synchronization
+    (LAN sync via REST API).
+
+RepoType: git
+Repo: https://github.com/f2r6a0n2k/vorratsuebersicht-sync
+
+Builds:
+  - versionName: 9.00-sync
+    versionCode: 149
+    commit: v9.00-sync
+    subdir: Vorratsübersicht
+    gradle:
+      - yes
+
+AutoUpdateMode: None
+UpdateCheckMode: None
+CurrentVersion: 9.00-sync
+CurrentVersionCode: 149

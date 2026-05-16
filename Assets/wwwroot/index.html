@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Vorratsübersicht - Sync</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/css/app.css">
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+</script>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <h1>Vorratsübersicht</h1>
+    <div class="nav-tabs">
+      <button class="tab active" data-tab="articles">Artikel</button>
+      <button class="tab" data-tab="storage">Lagerbestand</button>
+      <button class="tab" data-tab="shopping">Einkaufszettel</button>
+      <button class="tab" data-tab="sync">Sync</button>
+      <button class="tab" data-tab="about">Info</button>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <div id="tab-articles" class="tab-content active">
+    <div class="toolbar">
+      <input type="text" id="article-search" placeholder="Suchen..." oninput="loadArticles()">
+      <button onclick="showArticleForm()">+ Neu</button>
+    </div>
+    <div id="article-list" class="data-list"></div>
+  </div>
+
+  <div id="tab-storage" class="tab-content">
+    <div class="toolbar">
+      <button onclick="showStorageForm()">+ Zugang</button>
+    </div>
+    <div id="storage-list" class="data-list"></div>
+  </div>
+
+  <div id="tab-shopping" class="tab-content">
+    <div class="toolbar">
+      <button onclick="showShoppingForm()">+ Neu</button>
+    </div>
+    <div id="shopping-list" class="data-list"></div>
+  </div>
+
+  <div id="tab-sync" class="tab-content">
+    <div class="sync-panel">
+      <div class="sync-info" id="sync-info">Keine Sync-Daten geladen.</div>
+      <button onclick="loadSyncChanges()">Änderungen abrufen</button>
+    </div>
+    <div id="sync-changes" class="data-list"></div>
+  </div>
+
+  <div id="tab-about" class="tab-content">
+    <div class="about-panel">
+      <h2>Vorratsübersicht SyncServer</h2>
+      <p>Version 1.0.0</p>
+      <p>LAN-Synchronisationsserver für die Vorratsübersicht App.</p>
+      <p>Läuft auf <span id="server-info">unbekannt</span>.</p>
+      <hr>
+      <h3>API-Endpunkte</h3>
+      <pre>GET  /api/discovery
+GET  /api/articles
+POST /api/articles
+GET  /api/storage-items
+GET  /api/shopping-items
+GET  /api/sync/changes?since={timestamp}
+POST /api/sync/push</pre>
+    </div>
+  </div>
+</main>
+
+<!-- Modal -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">&times;</span>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

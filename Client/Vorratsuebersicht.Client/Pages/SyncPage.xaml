@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Vorratsuebersicht.Client.Pages.SyncPage"
+             Title="Sync">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <!-- Master-Verbindung -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Master-Verbindung" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+
+                    <Label x:Name="ConnectionStatus" Text="Nicht verbunden" FontSize="14" TextColor="{StaticResource Danger}" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Entry x:Name="MasterUrlEntry" Placeholder="http://192.168.x.x:5191/" Keyboard="Url"
+                               HorizontalOptions="FillAndExpand" />
+                        <Button Text="Verbinden" Clicked="OnConnectClicked" BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                    </HorizontalStackLayout>
+
+                    <Entry x:Name="AccessKeyEntry" Placeholder="Zugangsschl\u00fcssel (optional)" Keyboard="Text"
+                           HorizontalOptions="FillAndExpand" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Master suchen" Clicked="OnDiscoverClicked"
+                                BackgroundColor="{StaticResource Primary}" TextColor="White" />
+                        <Button x:Name="ScanQrButton" Text="QR scannen" Clicked="OnScanQrClicked"
+                                BackgroundColor="{StaticResource Primary}" TextColor="White" IsVisible="False" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Synchronisation -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Synchronisation" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Button x:Name="FullSyncButton" Text="Voll-Sync" Clicked="OnFullSyncClicked"
+                                BackgroundColor="{StaticResource Success}" TextColor="White" IsEnabled="False" />
+                        <Button x:Name="IncrementalSyncButton" Text="Sync" Clicked="OnIncrementalSyncClicked"
+                                BackgroundColor="{StaticResource Primary}" TextColor="White" IsEnabled="False" />
+                        <Button x:Name="ClearButton" Text="Lokal l&#xf6;schen" Clicked="OnClearClicked"
+                                BackgroundColor="{StaticResource Danger}" TextColor="White" />
+                    </HorizontalStackLayout>
+
+                    <Label x:Name="LastSyncLabel" Text="Noch nie synchronisiert" FontSize="12" TextColor="{StaticResource Gray}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Fortschritt -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Fortschritt" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+                    <ProgressBar x:Name="SyncProgress" Progress="0" ProgressColor="{StaticResource Primary}" />
+                    <Label x:Name="ProgressLabel" Text="Bereit" FontSize="12" TextColor="{StaticResource Gray}" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Log -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="16" HasShadow="True">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Log" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Secondary}" />
+                    <Label x:Name="LogLabel" Text="Keine Eintr&#xe4;ge" FontSize="11" TextColor="{StaticResource Gray}" FontFamily="monospace" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

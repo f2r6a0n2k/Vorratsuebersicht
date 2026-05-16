@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_client_connect"
+          android:title="Mit Master verbinden" />
+    <item android:id="@+id/menu_client_sync"
+          android:title="Jetzt synchronisieren" />
+    <item android:id="@+id/menu_client_disconnect"
+          android:title="Trennen" />
+</menu>

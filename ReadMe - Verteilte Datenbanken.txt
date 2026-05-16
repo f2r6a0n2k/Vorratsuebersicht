@@ -1,127 +1,99 @@
-﻿
-Überlegung für verteilte Datenbank
-==================================
+﻿Verteilte Datenbank - Synchronisation
+======================================
 
-Lagerbestand:
-- Insert, Update (+/- Anzahl Differenz, Lager, MHD), Delete
+Mit dieser Funktion k�nnen Sie Ihre Vorratsdaten auf mehreren Ger�ten nutzen.
+Zum Beispiel:
+- Telefon (Master): Hier werden alle Daten eingegeben und verwaltet
+- Tablet, Laptop, PC: Zeigen die Daten an oder �ndern sie
+- Familienmitglieder: K�nnen mit ihrem eigenen Ger�t auf die Daten zugreifen
 
-Artikelstamm
-- Insert, Update (nur die geänderten Felder), Delete
-
-Einkaufszettel
-- Insert, Update (Anzahl, gekauft,...), Delete
-
-
-
-Annahmen:
-
-- In der Gruppe (z.B. Familie) gibt es nur EINE Master Datenbank.
-
-- Alle replizieren nur gegen die Master Datenbank.
-
-- Jede Datenbank kann als Master Datenbank definiert werden, dann aber:
-  * kann sie nicht mehr aktiv replizieren
-  * Änderungs-Protokoll wird dann gelöscht und nicht befüllt
-  * Eine DatenbankID (GUID Zahl) wird erstellt (zur Sicherheit)
-  
-- Wenn Master Datenbank ins Slave konvertiert wird, dann:
-  * werden alle lokalen Daten davor gelöscht,
-  * die Daten vom Master werden auf das Gerät übertragen.
-
-- Ein Client kann sich anhand der DatenbankID und der IP Adresse
-  (z.B. abgescannt als QR Code) mit der Master Datenbank "verbinden"
-  und dann initial die Datenbank holen.
-  
-
-Client
-- Markt sich z.B. Mengen- und Datenänderungen (z.B. 2 entnommen, 1 gelöscht, Artikel 'A' in den Einkaufskorb)
-- Replikation nur mit dem Master möglich.
-- Zuerst werden Änderungen übertragen und dann den Ist Zustand geholt.
+Wichtig: Es gibt KEINEN zentralen Server im Internet.
+Die Ger�te m�ssen sich im selben Netzwerk befinden (WLAN zu Hause).
+Internetzugang ist NICHT erforderlich - alles funktioniert auch ohne Internet
+(Off-Grid).
 
 
-Beispiel:
+So funktioniert es:
+===================
 
-    Master                              Teilnehmer 1                        Teilenhmer 2
-    
-    Artikel Menge
-    ------- -----
-    A       5
-                                        => START der Replikation
-                                        - Keine Änderungen
-                                        - Aktuellen Stand abrufen
-                                        => ENDE der Replikation
-                                        
-                                        Artikel Menge  Änderung
-                                        ------- -----  --------
-                                        A       5      
-                                                                            => START der Replikation
-                                                                            - Keine Änderungen
-                                                                            - Aktuellen Stand abrufen
-                                                                            => ENDE der Replikation
-                                                                            
-                                                                            Artikel Menge  Änderung
-                                                                            ------- -----  --------
-                                                                            A       5      
-                                                                            
-                                                                            
-                                        Änderung Artikel A Menge -1
-                                        Artikel Menge  Änderung
-                                        ------- -----  --------
-                                        A       4      -1
-                                        
-                                                                            Änderung Artikel A Menge -2
-                                                                            Artikel Menge  Änderung
-                                                                            ------- -----  --------
-                                                                            A       3      -2
-    Artikel Menge                                    
-    ------- -----                       => START der Replikation
-    A       5-1       <---------------- Beim Artikel A Menge -1
-    A       4         ----------------> Aktuelle Menge 4
-                                        => ENDE der Replikation
-    
-                                        Artikel Menge  Änderung
-                                        ------- -----  --------
-                                        A       4      
-    Artikel Menge
-    ------- -----                                                           => START der Replikation
-    A       4-2       <---------------------------------------------------- Beim Artikel A Menge -2
-    A       2         ----------------------------------------------------> Aktuelle Menge 2
-                                                                            => ENDE der Replikation
+1. Master (Ihr Telefon mit der Vorrats�bersicht App):
+   - �ffnen Sie die App
+   - Gehen Sie zu den Einstellungen / Master-Modus
+   - Tippen Sie auf "Server starten"
+   - Ihr Telefon ist jetzt der Master und stellt die Daten bereit
 
-                                                                            Artikel Menge  Änderung
-                                                                            ------- -----  --------
-                                                                            A       2      
+2. Andere Ger�te:
+   - �ffnen Sie einen Internet-Browser (Firefox, Chrome, Safari)
+   - Geben Sie die Adresse ein, die im Master-Modus angezeigt wird
+     (z.B. http://192.168.1.42:5191/)
+   - Oder: Scannen Sie den QR-Code im Master-Modus mit dem anderen Ger�t
+   - Schon sehen Sie alle Ihre Daten im Browser!
+
+3. Sync-Client App (f�r Windows, Mac, Linux, iPhone):
+   - Starten Sie die VorratSync App
+   - Tippen Sie auf "Master suchen" - die App findet den Master automatisch
+   - Oder: Geben Sie die Adresse von Hand ein (steht im Master-Modus)
+   - Tippen Sie auf "Verbinden" und dann auf "Sync"
+   - Fertig! Alle Daten sind jetzt auch auf diesem Ger�t
 
 
-    Artikel Menge
-    ------- -----                       => START der Replikation
-    A       2                           keine Änderungen
-    A       2         ----------------> Aktuelle Menge 2
-                                        => ENDE der Replikation
-                                        
-                                        Artikel Menge  Änderung
-                                        ------- -----  --------
-                                        A       2      
-                                        
-                                        
-* Möglicher Problem 1
+Ohne WLAN-Router (Off-Grid / unterwegs):
+=========================================
 
-Teilnehmer 1 und 2 entnehmen 5 Artikel. Dadurch müßte Lagerbestand -5 sein.
+Kein WLAN vorhanden? Kein Problem! Es gibt mehrere M�glichkeiten:
+
+M�glichkeit 1: WLAN-Hotspot
+   - Machen Sie aus Ihrem Telefon einen WLAN-Hotspot (einrichten in den
+     Telefon-Einstellungen unter "Hotspot" oder "Tethering")
+   - Verbinden Sie das andere Ger�t mit diesem Hotspot
+   - Starten Sie den Master-Modus auf dem Telefon
+   - Verbinden Sie sich vom anderen Ger�t aus wie oben beschrieben
+
+M�glichkeit 2: WLAN-Direct (kommt demn�chst)
+   - Erm�glicht die direkte Verbindung zweier Ger�te ohne Router
+   - Wird in einer der n�chsten Versionen erg�nzt
+
+M�glichkeit 3: Browser (immer m�glich)
+   - Auch ohne Sync-Client k�nnen Sie einfach den Browser nutzen
+   - Die Web-Oberfl�che funktioniert auf jedem Ger�t mit Browser
 
 
+Welche Daten werden synchronisiert?
+====================================
 
-                                        
-Technologie
-===========
+- Alle Artikel (Name, Kategorie, Hersteller, EAN, etc.)
+- Der gesamte Lagerbestand (Mengen, Mindesthaltbarkeitsdaten, Lagerorte)
+- Die Einkaufsliste
 
-Eigene IP Adresse ermitteln:
+Bilder werden NICHT synchronisiert (zu gro� f�rs schnelle Netzwerk).
 
-            WifiManager wifiManager = (WifiManager)this.ApplicationContext.GetSystemService(Service.WifiService);
-            int ip = wifiManager.ConnectionInfo.IpAddress;
 
-            string addressAsString = string.Format("{0}.{1}.{2}.{3}",
-                            (ip & 0xff),
-                            (ip >> 8 & 0xff),
-                            (ip >> 16 & 0xff),
-                            (ip >> 24 & 0xff));
-                  
+Technische Details (f�r Entwickler):
+=====================================
+
+Protokoll: REST-API via HTTP, JSON-Format
+Port:      HTTP 5191, UDP 5190 (Discovery)
+Sync:      bidirektional mit �nderungsprotokoll (SyncChangeLog-Tabelle)
+           Volle Synchronisation oder inkrementell (nur �nderungen)
+Discovery: UDP-Broadcast "VORRAT_DISCOVERY" auf Port 5190
+           Antwort: "VORRAT_MASTER|{hostname}|{port}|{databaseId}"
+Sicherheit: Derzeit kein Passwort-Schutz (nur im lokalen Netzwerk empfohlen)
+
+API-Endpunkte:
+  GET  /api/discovery          - Informationen �ber den Master
+  GET  /api/discovery/ping     - Verbindungstest
+  GET  /api/db/info            - Datenbank-Statistiken
+  GET  /api/articles           - Alle Artikel abrufen
+  POST /api/articles           - Neuen Artikel anlegen
+  GET  /api/articles/{id}      - Einzelnen Artikel abrufen
+  PUT  /api/articles/{id}      - Artikel �ndern
+  DELETE /api/articles/{id}    - Artikel l�schen
+  GET  /api/storage-items      - Lagerbestand abrufen
+  POST /api/storage-items      - Lagerposition anlegen
+  DELETE /api/storage-items/{id} - Lagerposition l�schen
+  GET  /api/shopping-items     - Einkaufsliste abrufen
+  POST /api/shopping-items     - Einkaufsartikel hinzuf�gen
+  PUT  /api/shopping-items/{id} - Einkaufsartikel �ndern
+  DELETE /api/shopping-items/{id} - Einkaufsartikel l�schen
+  GET  /api/sync/changes?since={timestamp} - �nderungen seit Zeitpunkt
+  POST /api/sync/push          - Eigene �nderungen hochladen

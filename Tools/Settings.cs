@@ -80,6 +80,36 @@ namespace VorratsUebersicht
             prefEditor.Commit();
         }
 
+        internal static string GetMasterMode()
+        {
+            return GetString("SyncMasterEnabled", "off");
+        }
+
+        internal static void SetMasterMode(string mode)
+        {
+            PutString("SyncMasterEnabled", mode);
+        }
+
+        internal static string GetSyncServerUrl()
+        {
+            return GetString("SyncServerUrl", "");
+        }
+
+        internal static void SetSyncServerUrl(string url)
+        {
+            PutString("SyncServerUrl", url);
+        }
+
+        internal static string GetSyncLastTimestamp()
+        {
+            return GetString("SyncLastTimestamp", DateTime.UtcNow.AddDays(-30).ToString("O"));
+        }
+
+        internal static void SetSyncLastTimestamp(string ts)
+        {
+            PutString("SyncLastTimestamp", ts);
+        }
+
         internal static void Clear(string key)
         {
             var prefs = Application.Context.GetSharedPreferences("Vorratsübersicht", FileCreationMode.Private);

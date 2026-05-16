@@ -61,7 +61,7 @@ namespace VorratsUebersicht
             string databaseFileName;
 
             //
-            // Test Datenbank in Optionen ausgewählt?
+            // Test Datenbank in Optionen ausgewï¿½hlt?
             //
 			if (Android_Database.UseTestDatabase)
             {
@@ -72,7 +72,7 @@ namespace VorratsUebersicht
             }
 
             //
-            // Datenbank beim Starten der Anwendung ausgewählt?
+            // Datenbank beim Starten der Anwendung ausgewï¿½hlt?
             //
             if (!string.IsNullOrEmpty(Android_Database.SelectedDatabaseName))
             {
@@ -82,7 +82,7 @@ namespace VorratsUebersicht
             }    
 
             //
-            // Die App Datenbank auswählen.
+            // Die App Datenbank auswï¿½hlen.
             // (sollte dort eigentlich nicht existieren)
             //
             // /data/user/0/de.stryi.Vorratsuebersicht/files/Vorraete.db3
@@ -95,7 +95,7 @@ namespace VorratsUebersicht
                 return databaseFileName;
             }
 
-            // Öffne dann die zuletzt verwendete Datenbank.
+            // ï¿½ffne dann die zuletzt verwendete Datenbank.
             string lastSelectedDatabase = Settings.GetString("LastSelectedDatabase", null);
             if (!string.IsNullOrEmpty(lastSelectedDatabase))
             {
@@ -264,8 +264,8 @@ namespace VorratsUebersicht
 			string path = GetDatabasePath();
             if (path == null)
             {
-                TRACE("Keine Database ist ausgewählt.");
-                throw new Exception("Keine Database ist ausgewählt.");
+                TRACE("Keine Database ist ausgewï¿½hlt.");
+                throw new Exception("Keine Database ist ausgewï¿½hlt.");
             }
 
             FileInfo fileInfo = new FileInfo(path);
@@ -490,7 +490,7 @@ namespace VorratsUebersicht
                 conn.Execute("ALTER TABLE Article ADD COLUMN [Price] MONEY");
             }
 
-            // Update 2.34: Einstellungen (z.B. für zusätzliche eigene Kategorien)
+            // Update 2.34: Einstellungen (z.B. fï¿½r zusï¿½tzliche eigene Kategorien)
             if (!this.IsTableInDatabase(conn, "Settings"))
             {
                 string cmd = string.Empty;
@@ -503,14 +503,14 @@ namespace VorratsUebersicht
                 conn.Execute(cmd);
             }
 
-            // Update 4.00: Extra Tabelle für Bilder
+            // Update 4.00: Extra Tabelle fï¿½r Bilder
             if (!this.IsTableInDatabase(conn, "ArticleImage"))
             {
                 string cmd = 
                     "CREATE TABLE [ArticleImage] (" +
                     " [ImageId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
                     " [ArticleId] INTEGER NOT NULL," +
-                    " [Type] INTEGER NOT NULL," +     // 0 - Artikelbild(-er), 1 - z.B. Rüchsicht, 3 - Zutaten
+                    " [Type] INTEGER NOT NULL," +     // 0 - Artikelbild(-er), 1 - z.B. Rï¿½chsicht, 3 - Zutaten
                     " [CreatedAt] DATETIME NOT NULL," +   // Zum Sortieren gedacht
                     " [ImageSmall] IMAGE," +
                     " [ImageLarge] IMAGE);";
@@ -528,6 +528,22 @@ namespace VorratsUebersicht
             if (!this.IsFieldInTheTable(conn, "StorageItem", "StorageName"))
             {
                 conn.Execute("ALTER TABLE StorageItem ADD COLUMN [StorageName] TEXT");
+            }
+
+            // Update 9.00: SyncChangeLog fï¿½r verteilte Datenbanken
+            if (!this.IsTableInDatabase(conn, "SyncChangeLog"))
+            {
+                string cmd =
+                    "CREATE TABLE [SyncChangeLog] (" +
+                    " [SyncChangeLogId] INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                    " [EntityType] TEXT NOT NULL," +    // "Article", "StorageItem", "ShoppingItem"
+                    " [EntityId] INTEGER NOT NULL," +
+                    " [Operation] TEXT NOT NULL," +      // "create", "update", "delete"
+                    " [Timestamp] TEXT NOT NULL," +      // ISO datetime
+                    " [Data] TEXT);";                    // optional JSON snapshot
+                conn.Execute(cmd);
+                conn.Execute("CREATE INDEX [IX_SyncChangeLog_Timestamp] ON [SyncChangeLog] ([Timestamp] ASC);");
+                conn.Execute("CREATE INDEX [IX_SyncChangeLog_Entity] ON [SyncChangeLog] ([EntityType], [EntityId]);");
             }
         }
 
@@ -595,7 +611,7 @@ namespace VorratsUebersicht
 
         private string GetLocalizedFileName(string fileName)
         {
-            // Gibt es eine länderspezifisches Assets (Datei)?
+            // Gibt es eine lï¿½nderspezifisches Assets (Datei)?
             string landKz = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
 
             string name      = Path.GetFileNameWithoutExtension(fileName);

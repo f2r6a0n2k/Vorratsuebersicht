@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Vorratsuebersicht.Client.Pages.ArticlesPage"
+             Title="Artikel">
+
+    <Grid RowDefinitions="Auto,*">
+        <SearchBar x:Name="ArticleSearch" Placeholder="Suchen..." TextChanged="OnSearchTextChanged" />
+
+        <CollectionView x:Name="ArticleList" Grid.Row="1" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                            <Label FontSize="12" TextColor="{StaticResource Gray}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="{Binding Category}" />
+                                        <Span Text=" → " />
+                                        <Span Text="{Binding SubCategory}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+                            <HorizontalStackLayout Spacing="12" Margin="0,4,0,0">
+                                <Label Text="{Binding EanCode, StringFormat='EAN: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
+                                <Label Text="{Binding StorageName, StringFormat='Ort: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.EmptyView>
+                <Label Text="Keine Artikel gefunden" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+            </CollectionView.EmptyView>
+        </CollectionView>
+    </Grid>
+</ContentPage>

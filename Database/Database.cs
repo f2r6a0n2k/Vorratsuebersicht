@@ -44,24 +44,26 @@ namespace VorratsUebersicht
 
                 command.ExecuteNonQuery();
 
-                // Neue Lagerposition-Id übernehmen.
+                // Neue Lagerposition-Id ï¿½bernehmen.
                 command = databaseConnection.CreateCommand("SELECT last_insert_rowid()");
                 storageItem.StorageItemId = command.ExecuteScalar<int>();
 
+                Database.LogChange(databaseConnection, "StorageItem", storageItem.StorageItemId, "create");
                 Database.IncreaseChangeCounter();
             }
             else
             {
                 if (storageItem.Quantity == 0)
                 {
-                    TRACE("Lagerposition Löschung: {0}, {1}, {2}", storageItem.StorageItemId, storageItem.BestBefore_DebuggerDisplay, storageItem.StorageName);
+                    TRACE("Lagerposition Lï¿½schung: {0}, {1}, {2}", storageItem.StorageItemId, storageItem.BestBefore_DebuggerDisplay, storageItem.StorageName);
+                    Database.LogChange(databaseConnection, "StorageItem", storageItem.StorageItemId, "delete");
                     cmd += "DELETE FROM StorageItem WHERE StorageItemId = ?";
                     command = databaseConnection.CreateCommand(cmd, new object[] { storageItem.StorageItemId});
                     storageItem.StorageItemId = 0;
                 }
                 else
                 {
-                    TRACE("Lagerposition Änderung: {0}, {1}, {2}", storageItem.Quantity, storageItem.BestBefore_DebuggerDisplay, storageItem.StorageName);
+                    TRACE("Lagerposition ï¿½nderung: {0}, {1}, {2}", storageItem.Quantity, storageItem.BestBefore_DebuggerDisplay, storageItem.StorageName);
                     cmd += "UPDATE StorageItem SET Quantity = ?, BestBefore = ?, StorageName = ? WHERE StorageItemId = ?";
                     command = databaseConnection.CreateCommand(cmd, new object[]
                     {
@@ -70,6 +72,7 @@ namespace VorratsUebersicht
                         storageItem.StorageName,
                         storageItem.StorageItemId
                     });
+                    Database.LogChange(databaseConnection, "StorageItem", storageItem.StorageItemId, "update");
                 }
                 command.ExecuteNonQuery();
 
@@ -165,6 +168,9 @@ namespace VorratsUebersicht
 
             command.ExecuteNonQuery();
 
+            var shoppingItemId = databaseConnection.ExecuteScalar<int>("SELECT ShoppingListId FROM ShoppingList WHERE ArticleId = ?", articleId);
+            if (shoppingItemId > 0)
+                Database.LogChange(databaseConnection, "ShoppingItem", shoppingItemId, "update");
             Database.IncreaseChangeCounter();
         }
 
@@ -218,6 +224,9 @@ namespace VorratsUebersicht
             {
                 cmd = "INSERT INTO ShoppingList (ArticleId, Quantity) VALUES (?, ?)";
                 command = databaseConnection.CreateCommand(cmd, new object[] { articleId, newQuantity });
+                command.ExecuteNonQuery();
+                var newId = databaseConnection.ExecuteScalar<int>("SELECT last_insert_rowid()");
+                Database.LogChange(databaseConnection, "ShoppingItem", newId, "create");
             }
             else
             {
@@ -226,9 +235,10 @@ namespace VorratsUebersicht
 
                 cmd = "UPDATE ShoppingList SET Quantity = ? WHERE ArticleId = ?";
                 command = databaseConnection.CreateCommand(cmd, new object[] { newQuantity, articleId });
+                command.ExecuteNonQuery();
+                var shoppingItemId = databaseConnection.ExecuteScalar<int>("SELECT ShoppingListId FROM ShoppingList WHERE ArticleId = ?", articleId);
+                Database.LogChange(databaseConnection, "ShoppingItem", shoppingItemId, "update");
             }
-
-            command.ExecuteNonQuery();
 
             Database.IncreaseChangeCounter();
 
@@ -249,14 +259,18 @@ namespace VorratsUebersicht
             {
                 cmd = "INSERT INTO ShoppingList (ArticleId, Quantity) VALUES (?, ?)";
                 command = databaseConnection.CreateCommand(cmd, new object[] { articleId, newdQuantity });
+                command.ExecuteNonQuery();
+                var newId = databaseConnection.ExecuteScalar<int>("SELECT last_insert_rowid()");
+                Database.LogChange(databaseConnection, "ShoppingItem", newId, "create");
             }
             else
             {
                 cmd = "UPDATE ShoppingList SET Quantity = ? WHERE ArticleId = ?";
                 command = databaseConnection.CreateCommand(cmd, new object[] { newdQuantity, articleId });
+                command.ExecuteNonQuery();
+                var shoppingItemId = databaseConnection.ExecuteScalar<int>("SELECT ShoppingListId FROM ShoppingList WHERE ArticleId = ?", articleId);
+                Database.LogChange(databaseConnection, "ShoppingItem", shoppingItemId, "update");
             }
-
-            command.ExecuteNonQuery();
 
             Database.IncreaseChangeCounter();
         }
@@ -267,6 +281,8 @@ namespace VorratsUebersicht
             if (databaseConnection == null)
                 return;
 
+            var shoppingItemId = databaseConnection.ExecuteScalar<int>("SELECT ShoppingListId FROM ShoppingList WHERE ArticleId = ?", articleId);
+
             SQLiteCommand command;
             string cmd = string.Empty;
 
@@ -274,6 +290,8 @@ namespace VorratsUebersicht
             command = databaseConnection.CreateCommand(cmd, new object[] { articleId });
             command.ExecuteNonQuery();
 
+            if (shoppingItemId > 0)
+                Database.LogChange(databaseConnection, "ShoppingItem", shoppingItemId, "delete");
             Database.IncreaseChangeCounter();
         }
 
@@ -446,9 +464,15 @@ namespace VorratsUebersicht
             if (databaseConnection == null)
                 return;
 
-            TRACE("Alle Lagerpositionen löschen");
-            var command = databaseConnection.CreateCommand("DELETE FROM StorageItem");
+            TRACE("Alle Lagerpositionen lï¿½schen");
 
+            var storageItemIds = databaseConnection.Query<QuantityResult>("SELECT StorageItemId AS Quantity FROM StorageItem");
+            foreach (var item in storageItemIds)
+            {
+                Database.LogChange(databaseConnection, "StorageItem", (int)item.Quantity, "delete");
+            }
+
+            var command = databaseConnection.CreateCommand("DELETE FROM StorageItem");
             command.ExecuteNonQuery();
         }
 
@@ -547,7 +571,7 @@ namespace VorratsUebersicht
             stopWatch.Start();
             IList<StringResult> result = command.ExecuteQuery<StringResult>();
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für DISTINCT StorageName: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r DISTINCT StorageName: {0}", stopWatch.Elapsed.ToString());
 
             foreach(StringResult item in result)
             {
@@ -575,7 +599,7 @@ namespace VorratsUebersicht
             IList<StringPairResult> result = command.ExecuteQuery<StringPairResult>();
 
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für DISTINCT Category, Subcategory: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r DISTINCT Category, Subcategory: {0}", stopWatch.Elapsed.ToString());
 
             string lastCategory = string.Empty;
 
@@ -595,8 +619,8 @@ namespace VorratsUebersicht
 
                 if (!string.IsNullOrEmpty(subCategoryName))
                 {
-                    // Die Zeichenfülge "  - " vor dem {0} ist wichtig
-                    // für das Erkennen der Unterkategorie bei Auswahl.
+                    // Die Zeichenfï¿½lge "  - " vor dem {0} ist wichtig
+                    // fï¿½r das Erkennen der Unterkategorie bei Auswahl.
 
                     stringList.Add(string.Format("  - {0}", subCategoryName));
                 }
@@ -625,7 +649,7 @@ namespace VorratsUebersicht
             IList<StringResult> result = command.ExecuteQuery<StringResult>();
             
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für DISTINCT Manufacturer: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r DISTINCT Manufacturer: {0}", stopWatch.Elapsed.ToString());
 
             List<string> stringList = new List<string>();
             for (int i = 0; i < result.Count; i++)
@@ -663,7 +687,7 @@ namespace VorratsUebersicht
             IList<StringResult> result = command.ExecuteQuery<StringResult>();
 
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für DISTINCT Supermarket: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r DISTINCT Supermarket: {0}", stopWatch.Elapsed.ToString());
 
 
             List<string> stringList = new List<string>();
@@ -852,7 +876,7 @@ namespace VorratsUebersicht
             result = command.ExecuteQuery<Article>();
 
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für Artikelliste: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r Artikelliste: {0}", stopWatch.Elapsed.ToString());
 
             return result;
         }
@@ -951,7 +975,7 @@ namespace VorratsUebersicht
         }
 
         /// <summary>
-        /// Artikel suchen, für die eine Warnung ausgegeben werden soll.
+        /// Artikel suchen, fï¿½r die eine Warnung ausgegeben werden soll.
         /// </summary>
         /// <returns></returns>
         internal static decimal GetArticleCount_BaldZuVerbrauchen()
@@ -1117,7 +1141,7 @@ namespace VorratsUebersicht
             result = command.ExecuteQuery<StorageItemQuantityResult>();
             
             stopWatch.Stop();
-            Tools.TRACE("Dauer der Abfrage für Lagerbestand: {0}", stopWatch.Elapsed.ToString());
+            Tools.TRACE("Dauer der Abfrage fï¿½r Lagerbestand: {0}", stopWatch.Elapsed.ToString());
 
             return result;
         }
@@ -1179,6 +1203,7 @@ namespace VorratsUebersicht
 
             databaseConnection.Commit();
 
+            Database.LogChange(databaseConnection, "Article", articleId, "delete");
             Database.IncreaseChangeCounter();
         }
 
@@ -1349,6 +1374,7 @@ namespace VorratsUebersicht
                 return;
 
             databaseConnection.Update(obj);
+            Database.LogChange(databaseConnection, obj, "update");
             Database.IncreaseChangeCounter();
         }
 
@@ -1359,6 +1385,7 @@ namespace VorratsUebersicht
                 return;
 
             databaseConnection.Insert(obj);
+            Database.LogChange(databaseConnection, obj, "create");
             Database.IncreaseChangeCounter();
         }
 
@@ -1369,7 +1396,47 @@ namespace VorratsUebersicht
                 return;
 
             databaseConnection.Delete(obj);
+            Database.LogChange(databaseConnection, obj, "delete");
             Database.IncreaseChangeCounter();
+        }
+
+        // ===== SyncChangeLog =====
+
+        internal static void LogChange(SQLite.SQLiteConnection db, string entityType, int entityId, string operation)
+        {
+            try
+            {
+                db.Execute("INSERT INTO SyncChangeLog (EntityType, EntityId, Operation, Timestamp) VALUES (?, ?, ?, ?)",
+                    entityType, entityId, operation, DateTime.UtcNow.ToString("O"));
+            }
+            catch { }
+        }
+
+        internal static void LogChange(SQLite.SQLiteConnection db, object entity, string operation)
+        {
+            try
+            {
+                string entityType = null;
+                int entityId = 0;
+
+                if (entity is Article article)
+                {
+                    entityType = "Article";
+                    entityId = article.ArticleId;
+                }
+                else if (entity is ArticleImage)
+                {
+                    // Bilder nicht synchronisieren (zu groï¿½)
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+
+                LogChange(db, entityType, entityId, operation);
+            }
+            catch { }
         }
     }
 }

@@ -61,7 +61,7 @@ jobs:
                 -e "s|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|" \
                 -e '/<IntermediateOutputPath>/d' \
                 /workspace/Vorratsübersicht.csproj
-              grep -E 'TargetFrameworkVersion|IntermediateOutputPath' /workspace/Vorratsübersicht.csproj || true
+              grep -E "TargetFrameworkVersion|IntermediateOutputPath" /workspace/Vorratsübersicht.csproj || true
 
               echo "=== NuGet Restore ==="
               msbuild de.stryi.sln /restore /p:Configuration=Release

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Cryptography;
+
 using System.Text;
 using System.Threading.Tasks;
 using Android.App;
@@ -34,7 +34,7 @@ namespace VorratsUebersicht
         public event Action<string> OnClientConnected;
         public event Action<string> OnError;
 
-        private static readonly ConcurrentDictionary<string, RateLimitEntry> _rateLimit = new();
+        private static readonly ConcurrentDictionary<string, RateLimitEntry> _rateLimit = new ConcurrentDictionary<string, RateLimitEntry>();
 
         /// <summary>Access-Key aus der Datenbank abrufen oder erzeugen.</summary>
         public static string GetOrCreateAccessKey()
@@ -46,7 +46,12 @@ namespace VorratsUebersicht
                 if (string.IsNullOrEmpty(key))
                 {
                     const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-                    key = new string(Enumerable.Range(0, 12).Select(_ => chars[RandomNumberGenerator.GetInt32(chars.Length)]).ToArray());
+                    var bytes = new byte[12];
+                    using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+                    {
+                        rng.GetBytes(bytes);
+                    }
+                    key = new string(bytes.Select(b => chars[b % chars.Length]).ToArray());
                     db.Execute("INSERT INTO Settings (Key, Value) VALUES ('SYNC_ACCESS_KEY', ?)", key);
                 }
                 return key;
@@ -592,11 +597,11 @@ namespace VorratsUebersicht
             RespondJson(ctx, 200, result);
         }
 
-        private static readonly HashSet<string> ValidEntityTypes = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> ValidEntityTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Article", "StorageItem", "ShoppingItem"
         };
-        private static readonly HashSet<string> ValidOperations = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> ValidOperations = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "create", "update", "delete"
         };

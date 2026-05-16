@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -22,55 +22,36 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install Xamarin.Android
+        run: brew install --cask xamarin-android
+
       - name: Generate APK signing keystore (dev)
-        id: keystore
         run: |
           keytool -genkey -v -keystore vorratsuebersicht.keystore -alias vorratsuebersicht \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass vorratsync -keypass vorratsync \
             -dname "CN=CI, OU=Build, O=Vorratsuebersicht, L=Unknown, ST=Unknown, C=DE"
-          echo "base64=$(base64 -w0 vorratsuebersicht.keystore)" >> $GITHUB_OUTPUT
 
-      - name: Build signed APK (Xamarin Docker)
+      - name: Restore NuGet packages
+        run: msbuild de.stryi.sln /restore /p:Configuration=Release
+
+      - name: Build & sign APK
         run: |
-          mkdir -p build
-
-          docker run --rm \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            -e ANDROID_SDK_ROOT=/usr/lib/android-sdk \
-            rheuvel/xamarin-android:34-latest \
-            bash -c "
-              set -e
-              echo '=== Install Android SDK 33 (for XA v13.0) ==='
-              yes | sdkmanager 'platforms;android-33' 2>&1 || true
-              echo '=== NuGet Restore ==='
-              msbuild de.stryi.sln /restore \
-                /p:Configuration=Release \
-                /p:AndroidSdkDirectory=/usr/lib/android-sdk
-              echo '=== Build & Sign APK ==='
-              msbuild Vorratsübersicht.csproj \
-                /t:SignAndroidPackage \
-                /p:Configuration=Release \
-                /p:AndroidSdkDirectory=/usr/lib/android-sdk \
-                /p:AndroidKeyStore=true \
-                /p:AndroidSigningKeyStore=/workspace/vorratsuebersicht.keystore \
-                /p:AndroidSigningStorePass=vorratsync \
-                /p:AndroidSigningKeyAlias=vorratsuebersicht \
-                /p:AndroidSigningKeyPass=vorratsync \
-                /p:OutputPath=/workspace/build/
-              echo '=== Build complete ==='
-            "
-
-      - name: Check build output
-        run: ls -la build/
+          msbuild Vorratsübersicht.csproj \
+            /t:SignAndroidPackage \
+            /p:Configuration=Release \
+            /p:AndroidKeyStore=true \
+            /p:AndroidSigningKeyStore=$(pwd)/vorratsuebersicht.keystore \
+            /p:AndroidSigningStorePass=vorratsync \
+            /p:AndroidSigningKeyAlias=vorratsuebersicht \
+            /p:AndroidSigningKeyPass=vorratsync
 
       - name: Locate and rename APK
         id: apk
         run: |
-          APK=$(find build -name '*Signed.apk' | head -1)
+          APK=$(find . -path ./bin -prune -o -path ./obj -prune -o -name '*Signed.apk' -print | head -1)
           if [ -z "$APK" ]; then
-            APK=$(find build -name '*.apk' | head -1)
+            APK=$(find . -path ./bin -prune -o -path ./obj -prune -o -name '*.apk' -print | head -1)
           fi
           echo "Found APK: $APK"
           mv "$APK" de.stryi.Vorratsuebersicht_149.apk

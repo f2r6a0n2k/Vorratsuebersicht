@@ -115,16 +115,16 @@ namespace VorratsUebersicht
     internal class WifiActionListener : Java.Lang.Object, WifiP2pManager.IActionListener
     {
         private readonly Action _onSuccess;
-        private readonly Action<WifiP2pStatus?> _onFailure;
+        private readonly Action<WifiP2pFailureReason> _onFailure;
 
-        public WifiActionListener(Action onSuccess, Action<WifiP2pStatus?> onFailure)
+        public WifiActionListener(Action onSuccess, Action<WifiP2pFailureReason> onFailure)
         {
             _onSuccess = onSuccess;
             _onFailure = onFailure;
         }
 
         public void OnSuccess() => _onSuccess?.Invoke();
-        public void OnFailure(WifiP2pStatus? reason) => _onFailure?.Invoke(reason);
+        public void OnFailure(WifiP2pFailureReason reason) => _onFailure?.Invoke(reason);
     }
 
     internal class WifiPeerListListener : Java.Lang.Object, WifiP2pManager.IPeerListListener

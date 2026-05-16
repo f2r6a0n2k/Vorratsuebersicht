@@ -57,8 +57,8 @@ jobs:
               ls /usr/lib/mono/xbuild/Xamarin/Android/ | grep '^v' || echo "No v-dirs found"
 
               echo "=== Patch TargetFrameworkVersion in csproj ==="
-              sed -i 's|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|' /workspace/Vorratsübersicht.csproj
-              grep 'TargetFrameworkVersion' /workspace/Vorratsübersicht.csproj
+              sed -i "s|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|" /workspace/Vorratsübersicht.csproj
+              grep TargetFrameworkVersion /workspace/Vorratsübersicht.csproj
 
               echo "=== NuGet Restore ==="
               msbuild de.stryi.sln /restore /p:Configuration=Release

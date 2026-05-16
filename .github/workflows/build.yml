@@ -56,9 +56,12 @@ jobs:
               echo "=== Xamarin.Android framework versions ==="
               ls /usr/lib/mono/xbuild/Xamarin/Android/ | grep '^v' || echo "No v-dirs found"
 
-              echo "=== Patch TargetFrameworkVersion in csproj ==="
-              sed -i "s|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|" /workspace/Vorratsübersicht.csproj
-              grep TargetFrameworkVersion /workspace/Vorratsübersicht.csproj
+              echo "=== Patch csproj for Linux compatibility ==="
+              sed -i \
+                -e "s|<TargetFrameworkVersion>v13.0</TargetFrameworkVersion>|<TargetFrameworkVersion>v12.0</TargetFrameworkVersion>|" \
+                -e '/<IntermediateOutputPath>/d' \
+                /workspace/Vorratsübersicht.csproj
+              grep -E 'TargetFrameworkVersion|IntermediateOutputPath' /workspace/Vorratsübersicht.csproj || true
 
               echo "=== NuGet Restore ==="
               msbuild de.stryi.sln /restore /p:Configuration=Release

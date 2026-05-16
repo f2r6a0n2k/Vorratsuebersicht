@@ -53,7 +53,7 @@
                 android:layout_weight="1"
                 android:text="----"
                 android:textSize="20sp"
-                android:Typeface="monospace"
+                android:fontFamily="monospace"
                 android:textStyle="bold"
                 android:gravity="center_vertical"
                 android:padding="8dp" />
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:text="--"
             android:textSize="13sp"
-            android:Typeface="monospace"
+            android:fontFamily="monospace"
             android:layout_marginBottom="16dp" />
 
         <TextView

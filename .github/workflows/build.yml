@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -22,35 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Mono & Xamarin.Android
-        run: |
-          brew install mono
-          brew install --cask xamarin-android
-          MONO_PREFIX=$(brew --prefix mono 2>/dev/null || echo "/opt/homebrew")
-          echo "$MONO_PREFIX/bin" >> $GITHUB_PATH
-          for d in /Library/Frameworks/Mono.framework/Versions/Current/Commands \
-                    "$MONO_PREFIX/opt/mono/bin" \
-                    "/usr/local/bin"; do
-            [ -d "$d" ] && echo "$d" >> $GITHUB_PATH
-          done
-
-      - name: Locate msbuild
-        run: |
-          echo "=== which msbuild ==="
-          which msbuild 2>&1 || echo "not found"
-          echo "=== find msbuild ==="
-          find / -name msbuild -type f 2>/dev/null | head -10
-          echo "=== find msbuild.* ==="
-          find / -name 'msbuild*' -type f 2>/dev/null | head -10
-          echo "=== Mono commands ==="
-          ls /Library/Frameworks/Mono.framework/Versions/Current/Commands/ 2>/dev/null | head -20 || echo "dir not found"
-          echo "=== Xamarin.Android ==="
-          ls /Library/Frameworks/Xamarin.Android.framework/ 2>/dev/null | head -10 || echo "dir not found"
-          echo "=== brew ls mono ==="
-          brew ls mono 2>/dev/null | grep -i msbuild | head -10 || echo "no msbuild in mono"
-          echo "=== /etc/paths.d ==="
-          cat /etc/paths.d/* 2>/dev/null || echo "empty"
-
       - name: Generate APK signing keystore (dev)
         run: |
           keytool -genkey -v -keystore vorratsuebersicht.keystore -alias vorratsuebersicht \
@@ -58,26 +29,64 @@ jobs:
             -storepass vorratsync -keypass vorratsync \
             -dname "CN=CI, OU=Build, O=Vorratsuebersicht, L=Unknown, ST=Unknown, C=DE"
 
-      - name: Restore NuGet packages
-        run: msbuild de.stryi.sln /restore /p:Configuration=Release
-
-      - name: Build & sign APK
+      - name: Build APK in Xamarin Docker container
         run: |
-          msbuild Vorratsübersicht.csproj \
-            /t:SignAndroidPackage \
-            /p:Configuration=Release \
-            /p:AndroidKeyStore=true \
-            /p:AndroidSigningKeyStore=$(pwd)/vorratsuebersicht.keystore \
-            /p:AndroidSigningStorePass=vorratsync \
-            /p:AndroidSigningKeyAlias=vorratsuebersicht \
-            /p:AndroidSigningKeyPass=vorratsync
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -e ANDROID_SDK_ROOT=/usr/lib/android-sdk \
+            -e ANDROID_HOME=/usr/lib/android-sdk \
+            rheuvel89/xamarin-android:34-latest \
+            bash -c '
+              set -e
+              echo "=== Find sdkmanager ==="
+              SDKMAN=$(find /usr/lib/android-sdk /opt/android-sdk /android/sdk \
+                -name sdkmanager -type f 2>/dev/null | head -1)
+              if [ -z "$SDKMAN" ]; then
+                SDKMAN=$(find / -name sdkmanager -type f 2>/dev/null | head -1)
+              fi
+              echo "sdkmanager: ${SDKMAN:?NOT FOUND}"
+
+              echo "=== Available platforms before ==="
+              ls "$ANDROID_SDK_ROOT/platforms/" 2>/dev/null || echo "empty"
+
+              echo "=== Install Android SDK platform 33 ==="
+              yes | "$SDKMAN" "platforms;android-33"
+
+              echo "=== Available platforms after ==="
+              ls "$ANDROID_SDK_ROOT/platforms/"
+
+              echo "=== NuGet Restore ==="
+              msbuild de.stryi.sln /restore /p:Configuration=Release
+
+              echo "=== Build & Sign APK ==="
+              msbuild Vorratsübersicht.csproj \
+                /t:SignAndroidPackage \
+                /p:Configuration=Release \
+                /p:AndroidKeyStore=true \
+                /p:AndroidSigningKeyStore=/workspace/vorratsuebersicht.keystore \
+                /p:AndroidSigningStorePass=vorratsync \
+                /p:AndroidSigningKeyAlias=vorratsuebersicht \
+                /p:AndroidSigningKeyPass=vorratsync \
+                /p:OutputPath=/workspace/bin/
+
+              echo "=== Build output ==="
+              find /workspace -name "*.apk" -type f 2>/dev/null
+              ls -la /workspace/bin/ 2>/dev/null || echo "bin/ empty"
+            '
 
       - name: Locate and rename APK
         id: apk
         run: |
-          APK=$(find . -path ./bin -prune -o -path ./obj -prune -o -name '*Signed.apk' -print | head -1)
+          APK=$(find . -name '*Signed.apk' | head -1)
           if [ -z "$APK" ]; then
-            APK=$(find . -path ./bin -prune -o -path ./obj -prune -o -name '*.apk' -print | head -1)
+            APK=$(find . -name '*.apk' | head -1)
+          fi
+          if [ -z "$APK" ]; then
+            echo "No APK found - checking directories:"
+            ls -la bin/Release/ 2>/dev/null || echo "bin/Release/ not found"
+            ls -la 2>/dev/null
+            exit 1
           fi
           echo "Found APK: $APK"
           mv "$APK" de.stryi.Vorratsuebersicht_149.apk

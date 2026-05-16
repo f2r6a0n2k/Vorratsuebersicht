@@ -36,7 +36,7 @@ jobs:
             -w /workspace \
             -e ANDROID_SDK_ROOT=/usr/lib/android-sdk \
             -e ANDROID_HOME=/usr/lib/android-sdk \
-            rheuvel89/xamarin-android:34-latest \
+            rheuvel/xamarin-android:34-latest \
             bash -c '
               set -e
               echo "=== Find sdkmanager ==="

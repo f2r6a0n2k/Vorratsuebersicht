@@ -268,15 +268,19 @@ namespace VorratsUebersicht
 
         private void HandleDiscovery(HttpListenerContext ctx)
         {
-            var hostName = Java.Net.InetAddress.GetLocalHost()?.HostName ?? "android";
+            var hostName = Java.Net.InetAddress.GetByName(null)?.HostName ?? "android";
             var localIps = new List<string>();
             try
             {
-                foreach (var addr in Java.Net.NetworkInterface.NetworkInterfaces)
+                var ifaces = Java.Net.NetworkInterface.NetworkInterfaces;
+                while (ifaces.HasMoreElements)
                 {
+                    var addr = ifaces.NextElement() as Java.Net.NetworkInterface;
                     if (addr == null) continue;
-                    foreach (var inet in addr.InetAddresses)
+                    var inets = addr.InetAddresses;
+                    while (inets.HasMoreElements)
                     {
+                        var inet = inets.NextElement() as Java.Net.InetAddress;
                         if (inet == null) continue;
                         var addrStr = inet.HostAddress;
                         if (!inet.IsLoopbackAddress && addrStr.Contains('.'))
@@ -789,6 +793,7 @@ namespace VorratsUebersicht
         private static string GetStr(Dictionary<string, object> d, string k) => d != null && d.ContainsKey(k) ? d[k]?.ToString() : null;
         private static bool GetBool(Dictionary<string, object> d, string k) => d != null && d.ContainsKey(k) && d[k] is bool b && b;
         private static int? GetInt(Dictionary<string, object> d, string k) => d != null && d.ContainsKey(k) && d[k] != null ? Convert.ToInt32(d[k]) : (int?)null;
+        private static int GetInt(Dictionary<string, object> d, string k, int defaultValue) => d != null && d.ContainsKey(k) && d[k] != null ? Convert.ToInt32(d[k]) : defaultValue;
         private static decimal? GetDec(Dictionary<string, object> d, string k) => d != null && d.ContainsKey(k) && d[k] != null ? Convert.ToDecimal(d[k]) : (decimal?)null;
 
         public void Dispose()

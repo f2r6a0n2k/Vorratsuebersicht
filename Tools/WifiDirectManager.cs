@@ -12,10 +12,6 @@ using Android.OS;
 
 namespace VorratsUebersicht
 {
-    /// <summary>
-    /// WiFi-Direct (P2P) Manager f�r die direkte Ger�te-zu-Ger�te-Verbindung
-    /// ohne WLAN-Router. Erm�glicht Off-Grid-Sync.
-    /// </summary>
     public class WifiDirectManager : Java.Lang.Object, WifiP2pManager.IChannelListener
     {
         private WifiP2pManager _manager;
@@ -26,11 +22,11 @@ namespace VorratsUebersicht
         public bool IsConnected => _isConnected;
         public string GroupOwnerIp => _groupOwnerIp;
 
-        public event Action<string> OnLog;
-        public event Action<string> OnPeerFound;     // argument: device name + address
-        public event Action<string> OnConnected;     // argument: group owner IP
-        public event Action<string> OnDisconnected;
-        public event Action<string> OnError;
+        public Action<string> OnLog;
+        public Action<string> OnPeerFound;
+        public Action<string> OnConnected;
+        public Action<string> OnDisconnected;
+        public Action<string> OnError;
 
         public WifiDirectManager()
         {
@@ -45,85 +41,64 @@ namespace VorratsUebersicht
             OnDisconnected?.Invoke("WiFi-Direct Kanal getrennt");
         }
 
-        /// <summary>
-        /// Startet die Suche nach WiFi-Direct Ger�ten in der N�he.
-        /// </summary>
         public void DiscoverPeers()
         {
-            _manager.DiscoverPeers(_channel, new WifiP2pManager.ActionListener
-            {
-                OnSuccess = () => OnLog?.Invoke("WiFi-Direct: Suche gestartet"),
-                OnFailure = (reason) => OnError?.Invoke($"WiFi-Direct: Suche fehlgeschlagen (Code {reason})")
-            });
+            _manager.DiscoverPeers(_channel, new WifiActionListener(
+                onSuccess: () => OnLog?.Invoke("WiFi-Direct: Suche gestartet"),
+                onFailure: (reason) => OnError?.Invoke($"WiFi-Direct: Suche fehlgeschlagen (Code {reason})")
+            ));
         }
 
-        /// <summary>
-        /// Verbindet zu einem gefundenen Ger�t.
-        /// </summary>
         public void Connect(string deviceAddress)
         {
             var config = new WifiP2pConfig
             {
                 DeviceAddress = deviceAddress,
-                GroupOwnerIntent = 15 // will this device be the group owner (0-15, 15 = highest)
+                GroupOwnerIntent = 15
             };
 
-            _manager.Connect(_channel, config, new WifiP2pManager.ActionListener
-            {
-                OnSuccess = () => OnLog?.Invoke($"WiFi-Direct: Verbindung zu {deviceAddress} erfolgreich"),
-                OnFailure = (reason) => OnError?.Invoke($"WiFi-Direct: Verbindung fehlgeschlagen (Code {reason})")
-            });
+            _manager.Connect(_channel, config, new WifiActionListener(
+                onSuccess: () => OnLog?.Invoke($"WiFi-Direct: Verbindung zu {deviceAddress} erfolgreich"),
+                onFailure: (reason) => OnError?.Invoke($"WiFi-Direct: Verbindung fehlgeschlagen (Code {reason})")
+            ));
         }
 
-        /// <summary>
-        /// Entfernt die aktuelle WiFi-Direct Verbindung.
-        /// </summary>
         public void Disconnect()
         {
             if (_isConnected)
             {
-                _manager.RemoveGroup(_channel, new WifiP2pManager.ActionListener
-                {
-                    OnSuccess = () =>
+                _manager.RemoveGroup(_channel, new WifiActionListener(
+                    onSuccess: () =>
                     {
                         _isConnected = false;
                         OnDisconnected?.Invoke("WiFi-Direct: Gruppe verlassen");
                     },
-                    OnFailure = (reason) => OnError?.Invoke($"WiFi-Direct: Trennen fehlgeschlagen (Code {reason})")
-                });
+                    onFailure: (reason) => OnError?.Invoke($"WiFi-Direct: Trennen fehlgeschlagen (Code {reason})")
+                ));
             }
         }
 
-        /// <summary>
-        /// Wird aufgerufen, wenn sich der WiFi-Direct Verbindungsstatus �ndert.
-        /// Extrahiert die IP-Adresse des Gruppen-Besitzers.
-        /// </summary>
         public void OnConnectionInfoAvailable(WifiP2pInfo info)
         {
             _isConnected = info.GroupFormed;
             if (_isConnected && info.IsGroupOwner)
             {
-                // Dieses Ger�t ist der Gruppen-Besitzer (Host)
-                _groupOwnerIp = "192.168.49.1"; // Standard WiFi-Direct Gateway
+                _groupOwnerIp = "192.168.49.1";
                 OnConnected?.Invoke(_groupOwnerIp);
-                OnLog?.Invoke($"WiFi-Direct: Dieses Ger�t ist Gruppen-Besitzer ({_groupOwnerIp})");
+                OnLog?.Invoke($"WiFi-Direct: Dieses Gerät ist Gruppen-Besitzer ({_groupOwnerIp})");
             }
             else if (_isConnected && info.GroupOwnerAddress != null)
             {
-                // Dieses Ger�t ist ein Client
                 _groupOwnerIp = info.GroupOwnerAddress.HostAddress;
                 OnConnected?.Invoke(_groupOwnerIp);
                 OnLog?.Invoke($"WiFi-Direct: Verbunden mit Gruppen-Besitzer ({_groupOwnerIp})");
             }
         }
 
-        /// <summary>
-        /// Pr�ft, ob WiFi-Direct auf dem Ger�t verf�gbar ist.
-        /// </summary>
         public static bool IsSupported()
         {
             var ctx = Application.Context;
-            return ctx.PackageManager.HasSystemFeature(Android.Content.PM.PackageFeatures.WifiDirect);
+            return ctx.PackageManager.HasSystemFeature("android.hardware.wifi.direct");
         }
 
         protected override void Dispose(bool disposing)
@@ -137,9 +112,33 @@ namespace VorratsUebersicht
         }
     }
 
-    /// <summary>
-    /// Broadcast-Receiver f�r WiFi-Direct Ereignisse.
-    /// </summary>
+    internal class WifiActionListener : Java.Lang.Object, WifiP2pManager.IActionListener
+    {
+        private readonly Action _onSuccess;
+        private readonly Action<WifiP2pStatus?> _onFailure;
+
+        public WifiActionListener(Action onSuccess, Action<WifiP2pStatus?> onFailure)
+        {
+            _onSuccess = onSuccess;
+            _onFailure = onFailure;
+        }
+
+        public void OnSuccess() => _onSuccess?.Invoke();
+        public void OnFailure(WifiP2pStatus? reason) => _onFailure?.Invoke(reason);
+    }
+
+    internal class WifiPeerListListener : Java.Lang.Object, WifiP2pManager.IPeerListListener
+    {
+        private readonly Action<WifiP2pDeviceList> _onPeersAvailable;
+
+        public WifiPeerListListener(Action<WifiP2pDeviceList> onPeersAvailable)
+        {
+            _onPeersAvailable = onPeersAvailable;
+        }
+
+        public void OnPeersAvailable(WifiP2pDeviceList peers) => _onPeersAvailable?.Invoke(peers);
+    }
+
     [BroadcastReceiver(Enabled = true, Exported = false)]
     public class WifiDirectBroadcastReceiver : BroadcastReceiver
     {
@@ -167,8 +166,7 @@ namespace VorratsUebersicht
                     break;
 
                 case WifiP2pManager.WifiP2pPeersChangedAction:
-                    // Peers verf�gbar - Liste abrufen
-                    _manager.RequestPeers(_channel, peerList =>
+                    _manager.RequestPeers(_channel, new WifiPeerListListener(peerList =>
                     {
                         var peers = peerList?.DeviceList;
                         if (peers != null && peers.Count > 0)
@@ -177,9 +175,9 @@ namespace VorratsUebersicht
                             {
                                 _wifiDirect.OnPeerFound?.Invoke($"{peer.DeviceName} ({peer.DeviceAddress})");
                             }
-                            _wifiDirect.OnLog?.Invoke($"WiFi-Direct: {peers.Count} Ger�te gefunden");
+                            _wifiDirect.OnLog?.Invoke($"WiFi-Direct: {peers.Count} Geräte gefunden");
                         }
-                    });
+                    }));
                     break;
 
                 case WifiP2pManager.WifiP2pConnectionChangedAction:
@@ -190,7 +188,7 @@ namespace VorratsUebersicht
 
                 case WifiP2pManager.WifiP2pThisDeviceChangedAction:
                     var device = (WifiP2pDevice)intent.GetParcelableExtra(WifiP2pManager.ExtraWifiP2pDevice);
-                    _wifiDirect.OnLog?.Invoke($"WiFi-Direct: Dieses Ger�t = {device?.DeviceName}");
+                    _wifiDirect.OnLog?.Invoke($"WiFi-Direct: Dieses Gerät = {device?.DeviceName}");
                     break;
             }
         }

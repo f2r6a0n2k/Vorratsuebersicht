@@ -56,7 +56,7 @@ namespace VorratsUebersicht
 
                     if (msg == "VORRAT_DISCOVERY")
                     {
-                        var hostName = Java.Net.InetAddress.GetLocalHost()?.HostName ?? "android";
+                        var hostName = Java.Net.InetAddress.GetByName(null)?.HostName ?? "android";
                         var db = Android_Database.Instance.GetConnection();
                         var dbId = db.ExecuteScalar<string>("SELECT Value FROM Settings WHERE Key = 'SYNC_DATABASE_ID'") ?? "unknown";
 

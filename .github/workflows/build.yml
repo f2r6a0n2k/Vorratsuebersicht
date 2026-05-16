@@ -31,7 +31,7 @@ jobs:
           echo "base64=$(base64 -w0 vorratsuebersicht.keystore)" >> $GITHUB_OUTPUT
 
       - name: Build signed APK (Xamarin Docker container)
-        uses: rheuvel89/xamarin-container-action@v2
+        uses: rheuvel89/xamarin-container-action@v1.16.34
         with:
           SolutionPath: Vorratsübersicht.csproj
           ProjectPath: de.stryi.sln

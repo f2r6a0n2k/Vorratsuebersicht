@@ -6,3 +6,4 @@ archive_older: 0
 keypass: vorratsync
 keystorepass: vorratsync
 keystore: fdroid-repo.keystore
+repo_keyalias: fdroid-repo

@@ -50,6 +50,8 @@ jobs:
           brew ls mono 2>/dev/null | grep -i msbuild | head -10 || echo "no msbuild in mono"
           echo "=== /etc/paths.d ==="
           cat /etc/paths.d/* 2>/dev/null || echo "empty"
+
+      - name: Generate APK signing keystore (dev)
         run: |
           keytool -genkey -v -keystore vorratsuebersicht.keystore -alias vorratsuebersicht \
             -keyalg RSA -keysize 2048 -validity 10000 \

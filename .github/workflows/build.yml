@@ -76,11 +76,11 @@ jobs:
             mcr.microsoft.com/dotnet/sdk:10.0.100 \
             bash -c '
               set -e
+              apt-get update -qq && apt-get install -y -qq unzip curl
               dotnet workload install maui-android
               ANDROID_HOME=/usr/lib/android-sdk
               mkdir -p $ANDROID_HOME/cmdline-tools
-              CMDLINE_URL=https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-              curl -sL "$CMDLINE_URL" -o /tmp/cmdline-tools.zip
+              curl -sL "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" -o /tmp/cmdline-tools.zip
               unzip -q /tmp/cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools/
               mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
               yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME --licenses > /dev/null 2>&1 || true
@@ -130,7 +130,7 @@ jobs:
       - name: Build unsigned iOS .app
         run: |
           dotnet restore Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
-            -p:TargetFramework=net10.0-ios
+            -p:TargetFramework=net10.0-ios -p:RuntimeIdentifiers=ios-arm64
           dotnet publish Client/Vorratsuebersicht.Client/Vorratsuebersicht.Client.csproj \
             -f net10.0-ios -c Release --no-restore \
             -p:ApplicationVersion=${{ github.run_number }} \

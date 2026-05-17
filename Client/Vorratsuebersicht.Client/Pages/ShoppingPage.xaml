@@ -38,10 +38,10 @@
         </CollectionView.ItemTemplate>
 
         <CollectionView.EmptyView>
-            <VStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                 <Label Text="Einkaufszettel ist leer" HorizontalTextAlignment="Center" TextColor="{StaticResource Gray}" />
                 <Label Text="Tippe auf einen Artikel, um die Menge zu ändern" HorizontalTextAlignment="Center" FontSize="12" TextColor="{StaticResource Gray}" />
-            </VStackLayout>
+            </VerticalStackLayout>
         </CollectionView.EmptyView>
     </CollectionView>
 </ContentPage>

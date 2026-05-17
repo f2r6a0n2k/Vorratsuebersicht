@@ -1,5 +1,5 @@
 <Project>
-  <PropertyGroup>
+  <PropertyGroup Condition="$(TargetFramework.Contains('android'))">
     <AndroidArchitectures>armeabi-v7a;arm64-v8a</AndroidArchitectures>
     <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
   </PropertyGroup>

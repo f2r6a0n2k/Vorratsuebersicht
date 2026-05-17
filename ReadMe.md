@@ -44,14 +44,21 @@ Beide APKs können **gleichzeitig** auf demselben Gerät installiert sein.
 
 ### Schritt 3: iOS (iPhone / iPad)
 
-Für iOS wird ein **unsigned IPA** bereitgestellt (kein $99 Apple Developer Account nötig). Installation via **AltStore PAL** (EU) oder **SideStore**:
+Für iOS wird ein **unsigned IPA** bereitgestellt (kein $99 Apple Developer Account nötig).
 
-1. [AltStore PAL](https://futurict.blog/altstore-pal/) aus dem AltStore PAL Store installieren (nur EU, €1,50/Jahr)
-2. `VorratSync-*-ios.unsigned.ipa` aufs iPhone laden (z.B. über iCloud Drive / Dateien-App)
-3. In AltStore: **Meine Apps → + (oben links) → IPA auswählen**
-4. Fertig! Die App wird ohne 7-Tage-Refresh signiert (dank AltStore PAL)
+#### AltStore PAL (EU, empfohlen)
 
-Alternative (außerhalb EU): [SideStore](https://sidestore.io/) – erfordert kostenlose Apple-ID, Refresh alle 7 Tage.
+[AltStore PAL](https://altstore.io) ist der offizielle EU-Alternativ-App-Store – **kostenlos** (Epic Games MegaGrant deckt die Apple-Gebühren).
+
+1. Auf dem iPhone in Safari: [altstore.io/download](https://altstore.io/download) öffnen
+2. "Download" tippen → Marketplace-Installation erlauben (einmalig in Einstellungen)
+3. `VorratSync-*-ios.unsigned.ipa` aufs iPhone laden (z.B. iCloud Drive / Dateien-App)
+4. In AltStore: **Meine Apps → + → IPA auswählen**
+5. Fertig! Kein 7-Tage-Refresh nötig (Dank DMA-Regulierung)
+
+#### SideStore (weltweit, auch außerhalb EU)
+
+[SideStore](https://sidestore.io) ist AltStore ohne PC-Zwang – nach einmaliger Einrichtung läuft alles auf dem Gerät (WireGuard-VPN-Tunnel). Benötigt nur eine kostenlose Apple-ID. Apps werden automatisch im Hintergrund frisch signiert (alle 7 Tage).
 
 ---
 

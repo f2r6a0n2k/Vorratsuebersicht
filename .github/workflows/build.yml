@@ -81,7 +81,7 @@ jobs:
             -f net10.0-android -c Release \
             -p:ApplicationVersion=${{ github.run_number }} \
             -p:ApplicationDisplayVersion=1.0.${{ github.run_number }} \
-            -p:AndroidArchitectures="armeabi-v7a;arm64-v8a"
+            -p:AndroidArchitectures='armeabi-v7a;arm64-v8a'
 
       - name: Locate and rename APK
         run: |

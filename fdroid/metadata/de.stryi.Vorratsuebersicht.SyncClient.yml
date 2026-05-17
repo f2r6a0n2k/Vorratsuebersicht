@@ -1,0 +1,33 @@
+Categories: Utilities
+License: Apache-2.0
+AuthorName: f2r6a0n2k
+WebSite: https://github.com/f2r6a0n2k/Vorratsuebersicht
+SourceCode: https://github.com/f2r6a0n2k/Vorratsuebersicht
+IssueTracker: https://github.com/f2r6a0n2k/Vorratsuebersicht/issues
+
+AutoName: VorratSync
+Summary: LAN sync client for Vorratsübersicht
+Description: |-
+    VorratSync is the companion app for Vorratsübersicht's distributed
+    database synchronization feature.
+
+    Connect to a Vorratsübersicht Master (sync server) on your local
+    network to view and edit your pantry inventory, storage items,
+    and shopping list from any Android device.
+
+    Features:
+    * Automatic master discovery via UDP broadcast
+    * Real-time sync with master server
+    * Offline-first: changes stored locally, synced when connected
+    * PIN-based access control
+    * Clean modern UI built with .NET MAUI
+
+RepoType: git
+Repo: https://github.com/f2r6a0n2k/Vorratsuebersicht
+
+Builds: []
+
+AutoUpdateMode: None
+UpdateCheckMode: None
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

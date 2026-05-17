@@ -75,6 +75,33 @@ namespace Vorratsuebersicht.Client.Services
             }
         }
 
+        public async Task<(bool Success, string Error)> PushChangeAsync(string entityType, string operation, int entityId, Dictionary<string, object> data)
+        {
+            try
+            {
+                var change = new Dictionary<string, object>
+                {
+                    ["clientChangeId"] = Guid.NewGuid().ToString("N"),
+                    ["entityType"] = entityType,
+                    ["operation"] = operation,
+                    ["entityId"] = entityId,
+                    ["data"] = data
+                };
+                var body = JsonConvert.SerializeObject(new[] { change }, JsonSettings);
+                var req = CreateRequest(HttpMethod.Post, "/api/sync/push");
+                req.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                var res = await _http.SendAsync(req);
+                if (res.IsSuccessStatusCode)
+                    return (true, null);
+                var errBody = await res.Content.ReadAsStringAsync();
+                return (false, $"HTTP {(int)res.StatusCode}: {errBody}");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public async Task<Dictionary<string, object>> GetDiscoveryInfoAsync()
         {
             try

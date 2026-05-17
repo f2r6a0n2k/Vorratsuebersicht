@@ -8,21 +8,40 @@
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnItemTapped" />
+                    </Frame.GestureRecognizers>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout>
                             <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />
                             <HorizontalStackLayout Spacing="12">
                                 <Label Text="{Binding Quantity, StringFormat='Menge: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
-                                <Label Text="{Binding Bought, StringFormat='Gekauft: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                                <Label FontSize="13">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Bought}" Value="True">
+                                            <Setter Property="Text" Value="✔ Gekauft" />
+                                            <Setter Property="TextColor" Value="Green" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Bought}" Value="False">
+                                            <Setter Property="Text" Value="☐ Offen" />
+                                            <Setter Property="TextColor" Value="{StaticResource Gray}" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding Bought}" VerticalOptions="Center"
+                                Toggled="OnBoughtToggled" />
                     </Grid>
                 </Frame>
             </DataTemplate>
         </CollectionView.ItemTemplate>
 
         <CollectionView.EmptyView>
-            <Label Text="Einkaufszettel ist leer" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+            <VStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+                <Label Text="Einkaufszettel ist leer" HorizontalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+                <Label Text="Tippe auf einen Artikel, um die Menge zu ändern" HorizontalTextAlignment="Center" FontSize="12" TextColor="{StaticResource Gray}" />
+            </VStackLayout>
         </CollectionView.EmptyView>
     </CollectionView>
 </ContentPage>

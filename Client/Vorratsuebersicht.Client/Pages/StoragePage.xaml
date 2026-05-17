@@ -8,6 +8,9 @@
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnItemTapped" />
+                    </Frame.GestureRecognizers>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout>
                             <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />

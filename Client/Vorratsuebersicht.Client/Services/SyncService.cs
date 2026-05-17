@@ -51,12 +51,17 @@ namespace Vorratsuebersicht.Client.Services
 
         private string Url(string path) => $"{_masterUrl}{path}";
 
+        public async Task<bool> PingAsync()
+        {
+            var (ok, _) = await PingWithErrorAsync();
+            return ok;
+        }
+
         public async Task<(bool Success, string Error)> PingWithErrorAsync()
         {
             try
             {
-                var req = CreateRequest(HttpMethod.Get, "/api/discovery/ping");
-                var res = await _http.SendAsync(req);
+                var res = await _http.SendAsync(CreateRequest(HttpMethod.Get, "/api/discovery/ping"));
                 IsConnected = res.IsSuccessStatusCode;
                 if (IsConnected)
                     return (true, null);
@@ -68,12 +73,6 @@ namespace Vorratsuebersicht.Client.Services
                 IsConnected = false;
                 return (false, ex.Message);
             }
-        }
-
-        public async Task<bool> PingAsync()
-        {
-            var (ok, _) = await PingWithErrorAsync();
-            return ok;
         }
 
         public async Task<Dictionary<string, object>> GetDiscoveryInfoAsync()

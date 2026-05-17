@@ -50,26 +50,26 @@ public partial class SyncPage : ContentPage
             _sync.Configure(url, accessKey);
             var (ok, error) = await _sync.PingWithErrorAsync();
             if (ok)
-        {
-            var info = await _sync.GetDiscoveryInfoAsync();
-            ConnectionStatus.Text = $"Verbunden mit {url}";
-            ConnectionStatus.TextColor = Color.FromArgb("#27ae60");
-            FullSyncButton.IsEnabled = true;
-            IncrementalSyncButton.IsEnabled = true;
+            {
+                var info = await _sync.GetDiscoveryInfoAsync();
+                ConnectionStatus.Text = $"Verbunden mit {url}";
+                ConnectionStatus.TextColor = Color.FromArgb("#27ae60");
+                FullSyncButton.IsEnabled = true;
+                IncrementalSyncButton.IsEnabled = true;
 
-            var dbId = info?.ContainsKey("databaseId") == true ? info["databaseId"] : "?";
-            AddLog($"Verbunden. Datenbank-ID: {dbId}");
+                var dbId = info?.ContainsKey("databaseId") == true ? info["databaseId"] : "?";
+                AddLog($"Verbunden. Datenbank-ID: {dbId}");
 
-            await DisplayAlert("Erfolg", $"Mit Master verbunden!\nDatenbank-ID: {dbId}", "OK");
+                await DisplayAlert("Erfolg", $"Mit Master verbunden!\nDatenbank-ID: {dbId}", "OK");
+            }
+            else
+            {
+                ConnectionStatus.Text = $"Fehler: {error}";
+                ConnectionStatus.TextColor = Color.FromArgb("#e74c3c");
+                AddLog($"Fehler: {url} - {error}");
+                await DisplayAlert("Fehler", $"Master unter {url}\n{error}", "OK");
+            }
         }
-        else
-        {
-            ConnectionStatus.Text = $"Fehler: {error}";
-            ConnectionStatus.TextColor = Color.FromArgb("#e74c3c");
-            AddLog($"Fehler: {url} - {error}");
-            await DisplayAlert("Fehler", $"Master unter {url}\n{error}", "OK");
-        }
-    }
 
     private async void OnDiscoverClicked(object sender, EventArgs e)
     {
@@ -112,7 +112,7 @@ public partial class SyncPage : ContentPage
             var accessKey = AccessKeyEntry.Text?.Trim();
             _sync.Configure(firstUrl, accessKey);
 
-            var (ok, error) = await _sync.PingWithErrorAsync();
+            var (ok, errMsg) = await _sync.PingWithErrorAsync();
             if (ok)
             {
                 ConnectionStatus.Text = $"Verbunden mit {firstUrl}";
@@ -123,7 +123,7 @@ public partial class SyncPage : ContentPage
             }
             else
             {
-                AddLog($"Fehler: {error}");
+                AddLog($"Fehler: {errMsg}");
             }
         }
         catch (Exception ex)

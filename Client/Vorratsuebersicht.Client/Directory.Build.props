@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <AndroidArchitectures>armeabi-v7a;arm64-v8a</AndroidArchitectures>
+  </PropertyGroup>
+</Project>

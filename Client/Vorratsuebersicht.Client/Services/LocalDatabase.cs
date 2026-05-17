@@ -118,6 +118,19 @@ namespace Vorratsuebersicht.Client.Services
         }
 
         // Sync tracking
+        public async Task SaveSyncTimestampAsync()
+        {
+            var db = await GetDbAsync();
+            var entry = new SyncChangeLog
+            {
+                EntityType = "_sync_",
+                EntityId = 0,
+                Operation = "full",
+                Timestamp = DateTime.UtcNow.ToString("O")
+            };
+            await db.InsertAsync(entry);
+        }
+
         public async Task<DateTime> GetLastSyncAsync()
         {
             var db = await GetDbAsync();

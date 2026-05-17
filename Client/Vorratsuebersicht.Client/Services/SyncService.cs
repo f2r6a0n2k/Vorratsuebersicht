@@ -160,6 +160,7 @@ namespace Vorratsuebersicht.Client.Services
                 foreach (var s in shoppingItems)
                     await _db.SaveShoppingItemAsync(s);
 
+                await _db.SaveSyncTimestampAsync();
                 progress?.Report($"{articles.Count} Artikel, {storageItems.Count} Lagerpositionen, {shoppingItems.Count} Einkaufsartikel geladen");
                 progress?.Report("Synchronisation abgeschlossen!");
                 return true;

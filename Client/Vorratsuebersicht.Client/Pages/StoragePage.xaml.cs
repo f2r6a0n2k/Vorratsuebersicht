@@ -58,7 +58,9 @@ public partial class StoragePage : ContentPage
             if (_sync.IsConnected)
             {
                 var data = new Dictionary<string, object> { ["quantity"] = newQuantity };
-                await _sync.PushChangeAsync("StorageItem", "update", item.StorageItemId, data);
+                var (pushOk, pushErr) = await _sync.PushChangeAsync("StorageItem", "update", item.StorageItemId, data);
+                if (!pushOk)
+                    await DisplayAlert("Push-Fehler", $"Änderung konnte nicht an Master gesendet werden:\n{pushErr}", "OK");
             }
 
             await RefreshListAsync();

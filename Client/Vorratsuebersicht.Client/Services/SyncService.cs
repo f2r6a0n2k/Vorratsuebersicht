@@ -129,32 +129,38 @@ namespace Vorratsuebersicht.Client.Services
 
                 progress?.Report("Lade Artikel...");
                 var articles = await GetAsync<List<Article>>("/api/articles");
-                if (articles != null)
+                if (articles == null)
                 {
-                    await _db.ClearAllAsync();
-                    foreach (var a in articles)
-                        await _db.SaveArticleAsync(a);
-                    progress?.Report($"{articles.Count} Artikel geladen");
+                    progress?.Report("Fehler: Konnte Artikel nicht laden");
+                    return false;
                 }
 
                 progress?.Report("Lade Lagerbestand...");
                 var storageItems = await GetAsync<List<StorageItem>>("/api/storage-items");
-                if (storageItems != null)
+                if (storageItems == null)
                 {
-                    foreach (var s in storageItems)
-                        await _db.SaveStorageItemAsync(s);
-                    progress?.Report($"{storageItems.Count} Lagerpositionen geladen");
+                    progress?.Report("Fehler: Konnte Lagerbestand nicht laden");
+                    return false;
                 }
 
                 progress?.Report("Lade Einkaufsliste...");
                 var shoppingItems = await GetAsync<List<ShoppingItem>>("/api/shopping-items");
-                if (shoppingItems != null)
+                if (shoppingItems == null)
                 {
-                    foreach (var s in shoppingItems)
-                        await _db.SaveShoppingItemAsync(s);
-                    progress?.Report($"{shoppingItems.Count} Einkaufsartikel geladen");
+                    progress?.Report("Fehler: Konnte Einkaufsliste nicht laden");
+                    return false;
                 }
 
+                progress?.Report("Aktualisiere lokale Datenbank...");
+                await _db.ClearAllAsync();
+                foreach (var a in articles)
+                    await _db.SaveArticleAsync(a);
+                foreach (var s in storageItems)
+                    await _db.SaveStorageItemAsync(s);
+                foreach (var s in shoppingItems)
+                    await _db.SaveShoppingItemAsync(s);
+
+                progress?.Report($"{articles.Count} Artikel, {storageItems.Count} Lagerpositionen, {shoppingItems.Count} Einkaufsartikel geladen");
                 progress?.Report("Synchronisation abgeschlossen!");
                 return true;
             }

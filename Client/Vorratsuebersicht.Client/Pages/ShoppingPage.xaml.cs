@@ -51,7 +51,9 @@ public partial class ShoppingPage : ContentPage
                 {
                     ["isChecked"] = e.Value
                 };
-                await _sync.PushChangeAsync("ShoppingItem", "update", item.ShoppingListId, data);
+                var (pushOk, pushErr) = await _sync.PushChangeAsync("ShoppingItem", "update", item.ShoppingListId, data);
+                if (!pushOk)
+                    await DisplayAlert("Push-Fehler", $"Status konnte nicht an Master gesendet werden:\n{pushErr}", "OK");
             }
 
             await RefreshListAsync();
@@ -93,7 +95,9 @@ public partial class ShoppingPage : ContentPage
             if (_sync.IsConnected)
             {
                 var data = new Dictionary<string, object> { ["quantity"] = newQuantity };
-                await _sync.PushChangeAsync("ShoppingItem", "update", item.ShoppingListId, data);
+                var (pushOk, pushErr) = await _sync.PushChangeAsync("ShoppingItem", "update", item.ShoppingListId, data);
+                if (!pushOk)
+                    await DisplayAlert("Push-Fehler", $"Menge konnte nicht an Master gesendet werden:\n{pushErr}", "OK");
             }
 
             await RefreshListAsync();

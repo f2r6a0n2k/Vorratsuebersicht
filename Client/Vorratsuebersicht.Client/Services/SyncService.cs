@@ -51,19 +51,29 @@ namespace Vorratsuebersicht.Client.Services
 
         private string Url(string path) => $"{_masterUrl}{path}";
 
-        public async Task<bool> PingAsync()
+        public async Task<(bool Success, string Error)> PingWithErrorAsync()
         {
             try
             {
-                var res = await _http.SendAsync(CreateRequest(HttpMethod.Get, "/api/discovery/ping"));
+                var req = CreateRequest(HttpMethod.Get, "/api/discovery/ping");
+                var res = await _http.SendAsync(req);
                 IsConnected = res.IsSuccessStatusCode;
-                return IsConnected;
+                if (IsConnected)
+                    return (true, null);
+                var body = await res.Content.ReadAsStringAsync();
+                return (false, $"HTTP {(int)res.StatusCode}: {body}");
             }
-            catch
+            catch (Exception ex)
             {
                 IsConnected = false;
-                return false;
+                return (false, ex.Message);
             }
+        }
+
+        public async Task<bool> PingAsync()
+        {
+            var (ok, _) = await PingWithErrorAsync();
+            return ok;
         }
 
         public async Task<Dictionary<string, object>> GetDiscoveryInfoAsync()

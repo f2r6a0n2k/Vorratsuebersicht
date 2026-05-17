@@ -48,7 +48,8 @@ public partial class SyncPage : ContentPage
 
             var accessKey = AccessKeyEntry.Text?.Trim();
             _sync.Configure(url, accessKey);
-            if (await _sync.PingAsync())
+            var (ok, error) = await _sync.PingWithErrorAsync();
+            if (ok)
         {
             var info = await _sync.GetDiscoveryInfoAsync();
             ConnectionStatus.Text = $"Verbunden mit {url}";
@@ -63,10 +64,10 @@ public partial class SyncPage : ContentPage
         }
         else
         {
-            ConnectionStatus.Text = "Fehler: Master nicht erreichbar";
+            ConnectionStatus.Text = $"Fehler: {error}";
             ConnectionStatus.TextColor = Color.FromArgb("#e74c3c");
-            AddLog($"Fehler: {url} nicht erreichbar");
-            await DisplayAlert("Fehler", $"Master unter {url} nicht erreichbar", "OK");
+            AddLog($"Fehler: {url} - {error}");
+            await DisplayAlert("Fehler", $"Master unter {url}\n{error}", "OK");
         }
     }
 
@@ -111,13 +112,18 @@ public partial class SyncPage : ContentPage
             var accessKey = AccessKeyEntry.Text?.Trim();
             _sync.Configure(firstUrl, accessKey);
 
-            if (await _sync.PingAsync())
+            var (ok, error) = await _sync.PingWithErrorAsync();
+            if (ok)
             {
                 ConnectionStatus.Text = $"Verbunden mit {firstUrl}";
                 ConnectionStatus.TextColor = Color.FromArgb("#27ae60");
                 FullSyncButton.IsEnabled = true;
                 IncrementalSyncButton.IsEnabled = true;
                 AddLog("Automatisch verbunden");
+            }
+            else
+            {
+                AddLog($"Fehler: {error}");
             }
         }
         catch (Exception ex)

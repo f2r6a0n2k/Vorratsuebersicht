@@ -19,7 +19,7 @@
                                 <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />
                                 <HorizontalStackLayout Spacing="12">
                                     <Label Text="{Binding Quantity, StringFormat='Menge: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
-                                    <Label Text="{Binding BestBefore, StringFormat='MHD: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                                    <Label Text="{Binding BestBeforeFormatted, StringFormat='MHD: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Grid>

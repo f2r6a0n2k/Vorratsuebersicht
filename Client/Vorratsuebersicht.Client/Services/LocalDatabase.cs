@@ -108,6 +108,18 @@ namespace Vorratsuebersicht.Client.Services
             await db.ExecuteAsync("DELETE FROM ShoppingItem WHERE ShoppingListId = ?", id);
         }
 
+        public async Task ClearStorageItemsAsync()
+        {
+            var db = await GetDbAsync();
+            await db.DeleteAllAsync<StorageItem>();
+        }
+
+        public async Task ClearShoppingItemsAsync()
+        {
+            var db = await GetDbAsync();
+            await db.DeleteAllAsync<ShoppingItem>();
+        }
+
         public async Task ClearAllAsync()
         {
             var db = await GetDbAsync();

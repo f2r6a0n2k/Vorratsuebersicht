@@ -17,6 +17,9 @@ public partial class SyncPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        var savedKey = await SecureStorage.GetAsync("sync_access_key");
+        if (!string.IsNullOrEmpty(savedKey))
+            AccessKeyEntry.Text = savedKey;
         await UpdateStatusAsync();
     }
 
@@ -51,6 +54,7 @@ public partial class SyncPage : ContentPage
             var (ok, error) = await _sync.PingWithErrorAsync();
             if (ok)
             {
+                await SecureStorage.SetAsync("sync_access_key", accessKey ?? "");
                 var info = await _sync.GetDiscoveryInfoAsync();
                 ConnectionStatus.Text = $"Verbunden mit {url}";
                 ConnectionStatus.TextColor = Color.FromArgb("#27ae60");
@@ -115,6 +119,7 @@ public partial class SyncPage : ContentPage
             var (ok, errMsg) = await _sync.PingWithErrorAsync();
             if (ok)
             {
+                await SecureStorage.SetAsync("sync_access_key", accessKey ?? "");
                 ConnectionStatus.Text = $"Verbunden mit {firstUrl}";
                 ConnectionStatus.TextColor = Color.FromArgb("#27ae60");
                 FullSyncButton.IsEnabled = true;

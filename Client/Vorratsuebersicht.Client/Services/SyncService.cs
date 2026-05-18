@@ -103,6 +103,34 @@ namespace Vorratsuebersicht.Client.Services
             }
         }
 
+        public async Task<bool> RefreshStorageItemsAsync()
+        {
+            try
+            {
+                var items = await GetAsync<List<StorageItem>>("/api/storage-items");
+                if (items == null) return false;
+                await _db.ClearStorageItemsAsync();
+                foreach (var s in items)
+                    await _db.SaveStorageItemAsync(s);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> RefreshShoppingItemsAsync()
+        {
+            try
+            {
+                var items = await GetAsync<List<ShoppingItem>>("/api/shopping-items");
+                if (items == null) return false;
+                await _db.ClearShoppingItemsAsync();
+                foreach (var s in items)
+                    await _db.SaveShoppingItemAsync(s);
+                return true;
+            }
+            catch { return false; }
+        }
+
         public async Task<Dictionary<string, object>> GetDiscoveryInfoAsync()
         {
             try

@@ -84,18 +84,23 @@ public partial class ArticlesPage : ContentPage
 
     private async Task AddToStorageAsync(Article article)
     {
-        var result = await DisplayPromptAsync(
+        var quantityStr = await DisplayPromptAsync(
             "Ins Lager aufnehmen",
             $"Menge für {article.Name}:",
             initialValue: "1",
             keyboard: Keyboard.Numeric);
-
-        if (result == null) return;
-        if (!int.TryParse(result, out var quantity) || quantity < 1)
+        if (quantityStr == null) return;
+        if (!int.TryParse(quantityStr, out var quantity) || quantity < 1)
         {
             await DisplayAlert("Fehler", "Bitte eine gültige Zahl eingeben", "OK");
             return;
         }
+
+        var bestBefore = await DisplayPromptAsync(
+            "Mindesthaltbarkeitsdatum",
+            "MHD (TT.MM.JJJJ) – leer lassen, falls unbekannt:",
+            placeholder: "z.B. 31.12.2026");
+        if (bestBefore == null) return;
 
         try
         {
@@ -104,11 +109,29 @@ public partial class ArticlesPage : ContentPage
                 ["articleId"] = article.ArticleId,
                 ["quantity"] = quantity
             };
+            if (!string.IsNullOrWhiteSpace(bestBefore))
+            {
+                if (DateTime.TryParse(bestBefore, out var dt))
+                    data["bestBeforeDate"] = dt.ToString("yyyy-MM-dd");
+                else
+                {
+                    await DisplayAlert("Fehler", "Ungültiges Datum. Bitte TT.MM.JJJJ eingeben.", "OK");
+                    return;
+                }
+            }
+
             var (ok, err) = await _sync.PushChangeAsync("StorageItem", "create", null, data);
-            if (ok)
-                await DisplayAlert("Erfolg", $"{article.Name} ({quantity}x) wurde ins Lager aufgenommen", "OK");
-            else
+            if (!ok)
+            {
                 await DisplayAlert("Fehler", $"Konnte nicht zum Master senden:\n{err}", "OK");
+                return;
+            }
+
+            var refreshed = await _sync.RefreshStorageItemsAsync();
+            var msg = refreshed
+                ? $"{article.Name} ({quantity}x) wurde ins Lager aufgenommen"
+                : $"{article.Name} ({quantity}x) wurde an Master gesendet, aber lokale Daten konnten nicht aktualisiert werden";
+            await DisplayAlert("Erfolg", msg, "OK");
         }
         catch (Exception ex)
         {
@@ -123,7 +146,6 @@ public partial class ArticlesPage : ContentPage
             $"Menge für {article.Name}:",
             initialValue: "1",
             keyboard: Keyboard.Numeric);
-
         if (result == null) return;
         if (!int.TryParse(result, out var quantity) || quantity < 1)
         {
@@ -139,10 +161,17 @@ public partial class ArticlesPage : ContentPage
                 ["quantity"] = quantity
             };
             var (ok, err) = await _sync.PushChangeAsync("ShoppingItem", "create", null, data);
-            if (ok)
-                await DisplayAlert("Erfolg", $"{article.Name} ({quantity}x) wurde auf die Einkaufsliste gesetzt", "OK");
-            else
+            if (!ok)
+            {
                 await DisplayAlert("Fehler", $"Konnte nicht zum Master senden:\n{err}", "OK");
+                return;
+            }
+
+            var refreshed = await _sync.RefreshShoppingItemsAsync();
+            var msg = refreshed
+                ? $"{article.Name} ({quantity}x) wurde auf die Einkaufsliste gesetzt"
+                : $"{article.Name} ({quantity}x) wurde an Master gesendet, aber lokale Daten konnten nicht aktualisiert werden";
+            await DisplayAlert("Erfolg", msg, "OK");
         }
         catch (Exception ex)
         {

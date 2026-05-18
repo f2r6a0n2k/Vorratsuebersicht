@@ -15,5 +15,17 @@ namespace Vorratsuebersicht.Client.Models
 
         public string StorageName { get; set; }
         public string ArticleName { get; set; }
+
+        [Ignore]
+        public string BestBeforeFormatted
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(BestBefore)) return "";
+                if (DateTime.TryParse(BestBefore, out var dt))
+                    return dt.ToString("dd.MM.yyyy");
+                return BestBefore;
+            }
+        }
     }
 }

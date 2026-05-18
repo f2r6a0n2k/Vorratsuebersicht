@@ -1,6 +1,7 @@
 const API = '';
 let currentArticles = [];
-let accessKey = sessionStorage.getItem('sync_access_key') || '';
+let currentStorage = [];
+let accessKey = localStorage.getItem('sync_access_key') || sessionStorage.getItem('sync_access_key') || '';
 let pendingAccessKeyPrompt = null;
 
 function apiFetch(path, options = {}) {
@@ -35,6 +36,11 @@ function promptAccessKey() {
                 <div class="form-group">
                     <input id="access-key-input" type="password" placeholder="PIN eingeben" autofocus style="font-size:1.2rem;text-align:center;letter-spacing:0.3em">
                 </div>
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer">
+                        <input id="remember-key" type="checkbox" checked> PIN merken
+                    </label>
+                </div>
                 <div class="form-actions">
                     <button type="button" class="btn-danger" onclick="cancelAccessKey()">Abbrechen</button>
                     <button type="submit" class="btn-success">Bestätigen</button>
@@ -45,7 +51,12 @@ function promptAccessKey() {
         document.getElementById('access-key-input').focus();
         window.submitAccessKey = function() {
             const key = document.getElementById('access-key-input').value;
-            if (key) sessionStorage.setItem('sync_access_key', key);
+            if (key) {
+                if (document.getElementById('remember-key').checked)
+                    localStorage.setItem('sync_access_key', key);
+                else
+                    sessionStorage.setItem('sync_access_key', key);
+            }
             m.classList.add('hidden');
             pendingAccessKeyPrompt = null;
             resolve(key || null);
@@ -57,6 +68,12 @@ function promptAccessKey() {
         };
     });
     return pendingAccessKeyPrompt;
+}
+
+function saveAccessKey(key) {
+    if (!key) return;
+    localStorage.setItem('sync_access_key', key);
+    accessKey = key;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -106,10 +123,78 @@ function renderArticles() {
             </div>
             <div class="item-actions">
                 <button onclick="showArticleForm(${a.articleId})" title="Bearbeiten">&#9998;</button>
+                <button onclick="showAddToStorage(${a.articleId}, '${escAttr(a.name)}')" title="Ins Lager">&#128230;</button>
+                <button onclick="showAddToShopping(${a.articleId}, '${escAttr(a.name)}')" title="Einkaufen">&#128722;</button>
                 <button class="btn-danger" onclick="deleteArticle(${a.articleId})" title="L&ouml;schen">&times;</button>
             </div>
         </div>
     `).join('');
+}
+
+function showAddToStorage(articleId, articleName) {
+    document.getElementById('modal-body').innerHTML = `
+        <h2>Ins Lager aufnehmen</h2>
+        <p><strong>${esc(articleName)}</strong></p>
+        <form onsubmit="addToStorage(event, ${articleId})">
+            <div class="form-row">
+                <div class="form-group"><label>Menge *</label><input name="quantity" type="number" value="1" required></div>
+                <div class="form-group"><label>MHD</label><input name="bestBeforeDate" type="date"></div>
+            </div>
+            <div class="form-group"><label>Lagername</label><input name="storageName" value=""></div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="closeModal()">Abbrechen</button>
+                <button type="submit" class="btn-success">Ins Lager</button>
+            </div>
+        </form>
+    `;
+    document.getElementById('modal').classList.remove('hidden');
+}
+
+async function addToStorage(event, articleId) {
+    event.preventDefault();
+    const form = event.target;
+    const data = Object.fromEntries(new FormData(form));
+    data.articleId = articleId;
+    data.quantity = parseInt(data.quantity) || 1;
+    data.bestBeforeDate = data.bestBeforeDate || null;
+    data.storageName = data.storageName || null;
+    try {
+        await apiFetch('/api/storage-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        closeModal();
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+    }
+}
+
+function showAddToShopping(articleId, articleName) {
+    document.getElementById('modal-body').innerHTML = `
+        <h2>Auf Einkaufsliste setzen</h2>
+        <p><strong>${esc(articleName)}</strong></p>
+        <form onsubmit="addToShopping(event, ${articleId})">
+            <div class="form-group"><label>Menge *</label><input name="quantity" type="number" value="1" required></div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="closeModal()">Abbrechen</button>
+                <button type="submit" class="btn-success">Auf Einkaufsliste</button>
+            </div>
+        </form>
+    `;
+    document.getElementById('modal').classList.remove('hidden');
+}
+
+async function addToShopping(event, articleId) {
+    event.preventDefault();
+    const form = event.target;
+    const data = Object.fromEntries(new FormData(form));
+    data.articleId = articleId;
+    data.quantity = parseInt(data.quantity) || 1;
+    try {
+        await apiFetch('/api/shopping-items', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) });
+        closeModal();
+        loadShoppingItems();
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+    }
 }
 
 function showArticleForm(id) {
@@ -207,11 +292,20 @@ async function deleteArticle(id) {
 async function loadStorageItems() {
     try {
         const res = await apiFetch('/api/storage-items');
-        const items = await res.json();
-        renderStorageItems(items);
+        currentStorage = await res.json();
+        filterStorage();
     } catch (e) {
         console.error('loadStorageItems:', e);
     }
+}
+
+function filterStorage() {
+    const search = (document.getElementById('storage-search')?.value || '').toLowerCase();
+    if (!search) return renderStorageItems(currentStorage);
+    renderStorageItems(currentStorage.filter(s =>
+        (s.articleName || '').toLowerCase().includes(search) ||
+        (s.storageName || '').toLowerCase().includes(search)
+    ));
 }
 
 function renderStorageItems(items) {
@@ -225,7 +319,6 @@ function renderStorageItems(items) {
             if (diff < 0) cls = 'expired';
             else if (diff < 7) cls = 'warning';
         }
-        // Fetch article for expiry warnings
         return `
             <div class="data-item ${cls}">
                 <div class="item-main">
@@ -299,8 +392,49 @@ async function deleteStorageItem(id) {
 }
 
 function editStorageItem(id) {
-    // For simplicity, delete and recreate
-    deleteStorageItem(id).then(() => showStorageForm());
+    const item = currentStorage.find(s => s.storageItemId === id);
+    if (!item) return;
+    const mhd = item.bestBeforeDate ? item.bestBeforeDate.substring(0, 10) : '';
+    document.getElementById('modal-body').innerHTML = `
+        <h2>Lagerposition bearbeiten</h2>
+        <p><strong>${esc(item.articleName || 'Artikel #' + item.articleId)}</strong></p>
+        <form onsubmit="saveStorageEdit(event, ${id})">
+            <div class="form-row">
+                <div class="form-group"><label>Menge *</label><input name="quantity" type="number" value="${item.quantity}" required></div>
+                <div class="form-group"><label>MHD</label><input name="bestBeforeDate" type="date" value="${mhd}"></div>
+            </div>
+            <div class="form-group"><label>Lagername</label><input name="storageName" value="${escAttr(item.storageName || '')}"></div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="closeModal()">Abbrechen</button>
+                <button type="submit" class="btn-success">Speichern</button>
+            </div>
+        </form>
+    `;
+    document.getElementById('modal').classList.remove('hidden');
+}
+
+async function saveStorageEdit(event, id) {
+    event.preventDefault();
+    const form = event.target;
+    const data = Object.fromEntries(new FormData(form));
+    const changes = [{
+        clientChangeId: crypto.randomUUID?.() || Math.random().toString(36).substring(2),
+        entityType: 'StorageItem',
+        operation: 'update',
+        entityId: id,
+        data: {
+            quantity: parseInt(data.quantity) || 1,
+            bestBeforeDate: data.bestBeforeDate || null,
+            storageName: data.storageName || null
+        }
+    }];
+    try {
+        await apiFetch('/api/sync/push', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(changes) });
+        closeModal();
+        loadStorageItems();
+    } catch (e) {
+        alert('Fehler: ' + e.message);
+    }
 }
 
 // ===== Shopping Items =====
@@ -385,10 +519,7 @@ async function saveShoppingItem(event) {
 
 async function toggleShoppingItem(id, checked) {
     try {
-        const res = await apiFetch('/api/shopping-items/' + id);
-        const item = await res.json();
-        item.isChecked = checked;
-        await apiFetch('/api/shopping-items/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
+        await apiFetch('/api/shopping-items/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ isChecked: checked }) });
         loadShoppingItems();
     } catch (e) {
         alert('Fehler: ' + e.message);
@@ -433,9 +564,10 @@ async function loadSyncChanges() {
 
 async function loadServerInfo() {
     try {
-        const res = await apiFetch('/api/discovery');
+        const res = await apiFetch('/api/db/info');
         const info = await res.json();
-        document.getElementById('server-info').textContent = info.name + ' (' + info.hostName + ' - ' + (info.localIps || []).join(', ') + ')';
+        const ver = 'Vorratsübersicht SyncServer';
+        document.getElementById('server-info').textContent = ver + ' (DB: ' + (info.databaseId || '?') + ')';
     } catch {
         document.getElementById('server-info').textContent = 'nicht erreichbar';
     }

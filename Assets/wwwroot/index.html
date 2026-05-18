@@ -43,6 +43,7 @@ if ('serviceWorker' in navigator) {
 
   <div id="tab-storage" class="tab-content">
     <div class="toolbar">
+      <input type="text" id="storage-search" placeholder="Suchen..." oninput="filterStorage()">
       <button onclick="showStorageForm()">+ Zugang</button>
     </div>
     <div id="storage-list" class="data-list"></div>

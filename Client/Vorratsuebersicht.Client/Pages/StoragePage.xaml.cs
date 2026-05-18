@@ -7,6 +7,7 @@ public partial class StoragePage : ContentPage
 {
     private readonly LocalDatabase _db;
     private readonly SyncService _sync;
+    private List<StorageItem> _allItems = new();
 
     public StoragePage(LocalDatabase db, SyncService sync)
     {
@@ -28,8 +29,25 @@ public partial class StoragePage : ContentPage
 
     private async Task RefreshListAsync()
     {
-        StorageList.ItemsSource = null;
-        StorageList.ItemsSource = await _db.GetStorageItemsAsync();
+        _allItems = await _db.GetStorageItemsAsync();
+        ApplyFilter();
+    }
+
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var search = StorageSearch.Text?.ToLower() ?? "";
+        if (string.IsNullOrEmpty(search))
+            StorageList.ItemsSource = _allItems;
+        else
+            StorageList.ItemsSource = _allItems
+                .Where(s => (s.ArticleName?.ToLower().Contains(search) ?? false) ||
+                            (s.StorageName?.ToLower().Contains(search) ?? false))
+                .ToList();
     }
 
     private async void OnItemTapped(object sender, TappedEventArgs e)

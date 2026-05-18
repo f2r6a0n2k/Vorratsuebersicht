@@ -4,28 +4,32 @@
              x:Class="Vorratsuebersicht.Client.Pages.StoragePage"
              Title="Lagerbestand">
 
-    <CollectionView x:Name="StorageList" SelectionMode="None">
-        <CollectionView.ItemTemplate>
-            <DataTemplate>
-                <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
-                    <Frame.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnItemTapped" />
-                    </Frame.GestureRecognizers>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />
-                            <HorizontalStackLayout Spacing="12">
-                                <Label Text="{Binding Quantity, StringFormat='Menge: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
-                                <Label Text="{Binding BestBefore, StringFormat='MHD: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
-                    </Grid>
-                </Frame>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
+    <Grid RowDefinitions="Auto,*">
+        <SearchBar x:Name="StorageSearch" Placeholder="Suchen..." TextChanged="OnSearchTextChanged" />
 
-        <CollectionView.EmptyView>
-            <Label Text="Keine Lagerpositionen" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{StaticResource Gray}" />
-        </CollectionView.EmptyView>
-    </CollectionView>
+        <CollectionView x:Name="StorageList" Grid.Row="1" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnItemTapped" />
+                        </Frame.GestureRecognizers>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding ArticleName}" FontSize="16" FontAttributes="Bold" />
+                                <HorizontalStackLayout Spacing="12">
+                                    <Label Text="{Binding Quantity, StringFormat='Menge: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                                    <Label Text="{Binding BestBefore, StringFormat='MHD: {0}'}" FontSize="13" TextColor="{StaticResource Gray}" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.EmptyView>
+                <Label Text="Keine Lagerpositionen" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{StaticResource Gray}" />
+            </CollectionView.EmptyView>
+        </CollectionView>
+    </Grid>
 </ContentPage>

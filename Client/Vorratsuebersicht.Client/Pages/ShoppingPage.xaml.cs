@@ -74,6 +74,26 @@ public partial class ShoppingPage : ContentPage
         var frame = (Frame)sender;
         var item = (ShoppingItem)frame.BindingContext;
 
+        var action = await DisplayActionSheet(
+            item.ArticleName,
+            "Abbrechen",
+            null,
+            "Menge ändern",
+            "Von Liste entfernen");
+
+        switch (action)
+        {
+            case "Menge ändern":
+                await ChangeQuantityAsync(item);
+                break;
+            case "Von Liste entfernen":
+                await DeleteItemAsync(item);
+                break;
+        }
+    }
+
+    private async Task ChangeQuantityAsync(ShoppingItem item)
+    {
         var result = await DisplayPromptAsync(
             "Menge ändern",
             $"Neue Menge für {item.ArticleName}:",
@@ -105,6 +125,28 @@ public partial class ShoppingPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Fehler", $"Konnte Menge nicht speichern: {ex.Message}", "OK");
+            await RefreshListAsync();
+        }
+    }
+
+    private async Task DeleteItemAsync(ShoppingItem item)
+    {
+        var confirm = await DisplayAlert("Löschen",
+            $"{item.ArticleName} von der Einkaufsliste entfernen?", "Ja", "Abbrechen");
+        if (!confirm) return;
+
+        try
+        {
+            await _db.DeleteShoppingItemAsync(item.ShoppingListId);
+
+            if (_sync.IsConnected)
+                await _sync.PushChangeAsync("ShoppingItem", "delete", item.ShoppingListId, null);
+
+            await RefreshListAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Fehler", $"Konnte nicht löschen: {ex.Message}", "OK");
             await RefreshListAsync();
         }
     }

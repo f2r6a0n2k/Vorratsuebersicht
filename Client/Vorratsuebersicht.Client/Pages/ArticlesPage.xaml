@@ -11,23 +11,26 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Frame Margin="8,4" Padding="12" CornerRadius="8" HasShadow="True" BackgroundColor="White">
-                        <VerticalStackLayout>
-                            <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
-                            <Label FontSize="12" TextColor="{StaticResource Gray}">
-                                <Label.FormattedText>
-                                    <FormattedString>
-                                        <Span Text="{Binding Category}" />
-                                        <Span Text=" → " />
-                                        <Span Text="{Binding SubCategory}" />
-                                    </FormattedString>
-                                </Label.FormattedText>
-                            </Label>
-                            <HorizontalStackLayout Spacing="12" Margin="0,4,0,0">
-                                <Label Text="{Binding EanCode, StringFormat='EAN: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
-                                <Label Text="{Binding StorageName, StringFormat='Ort: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
-                            </HorizontalStackLayout>
-                        </VerticalStackLayout>
-                    </Frame>
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnArticleTapped" />
+                    </Frame.GestureRecognizers>
+                    <VerticalStackLayout>
+                        <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" />
+                        <Label FontSize="12" TextColor="{StaticResource Gray}">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding Category}" />
+                                    <Span Text=" → " />
+                                    <Span Text="{Binding SubCategory}" />
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <HorizontalStackLayout Spacing="12" Margin="0,4,0,0">
+                            <Label Text="{Binding EanCode, StringFormat='EAN: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
+                            <Label Text="{Binding StorageName, StringFormat='Ort: {0}'}" FontSize="11" TextColor="{StaticResource Gray}" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
 

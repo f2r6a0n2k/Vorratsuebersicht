@@ -75,7 +75,7 @@ namespace Vorratsuebersicht.Client.Services
             }
         }
 
-        public async Task<(bool Success, string Error)> PushChangeAsync(string entityType, string operation, int entityId, Dictionary<string, object> data)
+        public async Task<(bool Success, string Error)> PushChangeAsync(string entityType, string operation, int? entityId, Dictionary<string, object> data)
         {
             try
             {
@@ -84,9 +84,10 @@ namespace Vorratsuebersicht.Client.Services
                     ["clientChangeId"] = Guid.NewGuid().ToString("N"),
                     ["entityType"] = entityType,
                     ["operation"] = operation,
-                    ["entityId"] = entityId,
                     ["data"] = data
                 };
+                if (entityId.HasValue)
+                    change["entityId"] = entityId.Value;
                 var body = JsonConvert.SerializeObject(new[] { change }, JsonSettings);
                 var req = CreateRequest(HttpMethod.Post, "/api/sync/push");
                 req.Content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -172,7 +173,7 @@ namespace Vorratsuebersicht.Client.Services
             }
         }
 
-        /// <summary>Inkrementelle Synchronisation: Nur �nderungen seit letztem Sync.</summary>
+        /// <summary>Inkrementelle Synchronisation: Nur Änderungen seit letztem Sync.</summary>
         public async Task<bool> IncrementalSyncAsync(IProgress<string> progress = null)
         {
             try
@@ -186,21 +187,21 @@ namespace Vorratsuebersicht.Client.Services
                 var lastSync = await _db.GetLastSyncAsync();
                 if (lastSync == DateTime.MinValue)
                 {
-                    progress?.Report("Erster Sync - vollst�ndige Synchronisation...");
+                    progress?.Report("Erster Sync - vollständige Synchronisation...");
                     return await FullSyncAsync(progress);
                 }
 
-                progress?.Report($"Pr�fe �nderungen seit {lastSync:g}...");
+                progress?.Report($"Prüfe Änderungen seit {lastSync:g}...");
                 var changes = await GetAsync<List<ChangeEntry>>(
                     $"/api/sync/changes?since={Uri.EscapeDataString(lastSync.ToString("O"))}");
 
                 if (changes == null || changes.Count == 0)
                 {
-                    progress?.Report("Keine �nderungen seit letztem Sync");
+                    progress?.Report("Keine Änderungen seit letztem Sync");
                     return true;
                 }
 
-                progress?.Report($"{changes.Count} �nderungen gefunden, wende an...");
+                progress?.Report($"{changes.Count} Änderungen gefunden, wende an...");
                 foreach (var change in changes)
                 {
                     await ApplyChangeAsync(change);
